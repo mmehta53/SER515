@@ -1,10 +1,11 @@
-from app import db
-from sqlalchemy.dialects.postgresql import UUID
+# app/models/organization.py
 import uuid
+from datetime import datetime
+from mongoengine import Document, StringField, DateTimeField
 
-class Organization(db.Model):
-    __tablename__ = 'organizations'
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+class Organization(Document):
+    meta = {'collection': 'organizations'}
+    id = StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = StringField(required=True, max_length=255)
+    description = StringField()
+    createdAt = DateTimeField(default=datetime.utcnow)
