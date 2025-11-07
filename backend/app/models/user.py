@@ -1,23 +1,43 @@
-from app import db
-from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.dialects.postgresql import UUID
+# app/models/user.py
 import uuid
+from datetime import datetime
+from mongoengine import Document, StringField, BooleanField, DateTimeField
+from werkzeug.security import generate_password_hash, check_password_hash
 
-class User(db.Model):
-    __tablename__ = 'users'
-    user_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    first_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100))
-    role = db.Column(db.Enum('pig', 'chicken', 'admin', name='user_role'), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    last_login = db.Column(db.DateTime)
-    org_id = db.Column(UUID(as_uuid=True), db.ForeignKey('organizations.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+class User(Document):
+    meta = {
+        'collection': 'users',
+        'strict': False 
+    }
+    userId = StringField(required=True)
+    email = StringField(required=True)
+    passwordHash = StringField(required=True)
+    firstName = StringField()
+    lastName = StringField()
+    role = StringField(required=True)
+    isActive = BooleanField(default=True)
+    lastLogin = DateTimeField()
+    orgId = StringField(required=True)
+    createdAt = DateTimeField()
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.passwordHash = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        print(f"Checking password for user: {self.email}")
+        print(f"Stored hash exists: {bool(self.passwordHash)}")
+        result = check_password_hash(self.passwordHash, password)
+        print(f"Password check result: {result}")
+        return result
+
+    @classmethod
+    def print_user_debug(cls, email):
+        user = cls.objects(email=email).first()
+        if user:
+            print(f"Found user with email: {email}")
+            print(f"User ID: {user.userId}")
+            print(f"Has password hash: {bool(user.passwordHash)}")
+            print(f"Is active: {user.isActive}")
+            print(f"Role: {user.role}")
+        else:
+            print(f"No user found with email: {email}")

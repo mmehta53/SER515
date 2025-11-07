@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies
-from app import db
 from app.models.user import User
 from datetime import datetime
 
@@ -15,30 +14,54 @@ def login():
     if not email or not password:
         return jsonify({'error': 'Email and password required'}), 400
 
-    user = User.query.filter_by(email=email).first()
-    if not user or not user.check_password(password) or not user.is_active:
+    print(f"Login attempt for email: {email}")
+    
+    # Try direct MongoDB query
+    from mongoengine.connection import get_db
+    db = get_db()
+    direct_user = db.users.find_one({"email": email})
+    print(f"Direct MongoDB query result: {direct_user}")
+    
+    # Try MongoEngine query
+    user = User.objects(email=email).first()
+    print(f"MongoEngine query result: {user}")
+    print(f"User found: {user is not None}")
+    
+    if not user:
+        print("User not found in database")
+        # List all users in the collection to debug
+        all_users = list(db.users.find({}, {"email": 1}))
+        print(f"All users in database: {all_users}")
+        return jsonify({'error': 'Invalid credentials or inactive account'}), 401
+    
+    if not user.check_password(password):
+        print("Password check failed")
+        return jsonify({'error': 'Invalid credentials or inactive account'}), 401
+    
+    if not user.isActive:
+        print("User account is inactive")
         return jsonify({'error': 'Invalid credentials or inactive account'}), 401
 
     # Update last_login (as per Design Doc)
-    user.last_login = datetime.utcnow()
-    db.session.commit()
+    user.lastLogin = datetime.utcnow()
+    user.save()
 
     # Generate JWTs (access + refresh)
     access_token = create_access_token(
-        identity=str(user.user_id), 
+        identity=str(user.userId), 
         additional_claims={
             'role': user.role,
-            'org_id': str(user.org_id) if user.org_id else None
+            'orgId': str(user.orgId) if user.orgId else None
         }
     )
-    refresh_token = create_refresh_token(identity=str(user.user_id))
+    refresh_token = create_refresh_token(identity=str(user.userId))
 
     response = jsonify({
         'message': 'Login successful',
         'user': {
             'email': user.email, 
             'role': user.role,
-            'org_id': str(user.org_id) if user.org_id else None
+            'orgId': str(user.orgId) if user.orgId else None
         }
     })
     set_access_cookies(response, access_token)
