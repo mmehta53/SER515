@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import "./Login.css"; 
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -45,38 +46,57 @@ export default function Login() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-96">
-        <h2 className="text-2xl font-semibold mb-6 text-center">Login</h2>
+    <div className="login-container">
+      <div className="login-card">
+        <h2 className="login-heading">
+          Welcome Back 👋
+        </h2>
 
-        <form onSubmit={handleLogin} className="flex flex-col space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="input-group">
+            <label className="input-label">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="input-field"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="input-group">
+            <label className="input-label">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              className="input-field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && (
+            <p className="error-message">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
-            className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-all"
+            className="login-button"
           >
             Login
           </button>
         </form>
+
+        <p className="login-footer">
+          Don't have an account?{" "}
+          <a href="/register" className="signup-link">
+            Sign up
+          </a>
+        </p>
       </div>
     </div>
   );
