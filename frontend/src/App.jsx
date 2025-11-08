@@ -1,14 +1,57 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
+import { PrivateRoute, AuthRoute } from "./components/PrivateRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/admin" element={<h1>Welcome Admin</h1>} />
-        <Route path="/user" element={<h1>Welcome User</h1>} />
-        <Route path="/dashboard" element={<h1>Welcome Dashboard</h1>} />
+        {/* Login route - protected from authenticated users */}
+        <Route 
+          path="/" 
+          element={
+            <PrivateRoute>
+              <Login />
+            </PrivateRoute>
+          } 
+        />
+
+        {/* Protected routes - require authentication */}
+        <Route 
+          path="/admin" 
+          element={
+            <AuthRoute>
+              <Dashboard />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/user" 
+          element={
+            <AuthRoute>
+              <Dashboard />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            <AuthRoute>
+              <Dashboard />
+            </AuthRoute>
+          } 
+        />
+
+        {/* Catch all other routes and redirect to dashboard if authenticated, login if not */}
+        <Route 
+          path="*" 
+          element={
+            localStorage.getItem('token') 
+              ? <Navigate to="/dashboard" /> 
+              : <Navigate to="/" />
+          } 
+        />
       </Routes>
     </Router>
   );
