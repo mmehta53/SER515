@@ -1,6 +1,6 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,25 +13,26 @@ export default function Login() {
     setError("");
 
     try {
-      // Send credentials so backend can set cookies (JWT in cookies)
-      const response = await axios.post(
-        "http://127.0.0.1:5000/api/auth/login",
-        { email, password },
-        { withCredentials: true }
-      );
+      const response = await api.post('/auth/login', { email, password });
 
-      // Backend currently sets JWTs as cookies and returns a `user` object in the JSON body
-      // Adapt to both possibilities (token may or may not be returned)
-      const { token, user } = response.data || {};
+      const { user } = response.data;
+      
+      if (user) {
+        // Store user info and token in localStorage
+        localStorage.setItem("user", JSON.stringify({
+          email: user.email,
+          role: user.role,
+          orgId: user.orgId
+        }));
+        
+        if (user.token) {
+          localStorage.setItem("token", user.token);
+        }
+        
+        // Token will be automatically handled by api.js interceptor
+      }
+
       const roleFromResp = (user && user.role) || (response.data && response.data.role) || null;
-
-      if (token) {
-        // if backend returns a token in the body, store it
-        localStorage.setItem("token", token);
-      }
-      if (roleFromResp) {
-        localStorage.setItem("role", roleFromResp);
-      }
 
       // Redirect based on role
       if (roleFromResp === "admin") navigate("/admin");
