@@ -18,8 +18,12 @@ def create_app():
     connect(db='SER515', host=app.config['MONGO_URI'])
     jwt.init_app(app)
     
-    from app.models import user, organization  # Import models
+    from app.models import user, organization, project  # Import models
     from app.routes.auth import auth_bp
+    from app.routes.projects import projects_bp
+    
+    # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(projects_bp, url_prefix='/api/projects')
     
     return app

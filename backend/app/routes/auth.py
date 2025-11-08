@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies
 from app.models.user import User
-from datetime import datetime
+from datetime import datetime, timedelta
+# from flask_cors import cross_origin
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -61,10 +62,16 @@ def login():
         'user': {
             'email': user.email, 
             'role': user.role,
-            'orgId': str(user.orgId) if user.orgId else None
+            'orgId': str(user.orgId) if user.orgId else None,
+            'token': access_token  # Include token in response for frontend
         }
     })
+    
+    # Set cookies for additional security
     set_access_cookies(response, access_token)
     set_refresh_cookies(response, refresh_token)
-
+    
+    # Set CORS headers
+    # response.headers.add('Access-Control-Allow-Credentials', 'true')
+    
     return response, 200
