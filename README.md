@@ -50,109 +50,70 @@ Ensure you have the following installed:
 - [Node.js 18+](https://nodejs.org/)
 - [npm](https://www.npmjs.com/)
 - [Git](https://git-scm.com/)
-- [MongoDB](https://www.mongodb.com/try/download/community) or MongoDB Atlas
+- [MongoDB](https://www.mongodb.com/try/download/community) or [MongoDB Compass](https://www.mongodb.com/products/tools/compass)
 
 ---
 
-### 1️⃣ Clone the Repository
-Open your terminal and run:
-```bash
-git clone https://github.com/mmehta53/SER515.git
-cd SER515
-````
+## 🚀 Getting Started
 
----
+Follow these steps to set up and run the project locally.
+### 1. Backend Setup (Python/Flask)
 
-### 2️⃣ Backend Setup (Flask + MongoDB)
-
-1. Navigate to the backend directory:
+1. Clone the Repository:
 
    ```bash
-   cd backend
+   git clone [your-repo-link]
+   cd [project-folder]/backend
    ```
 
-2. Create and activate a virtual environment:
+2. Set up Virtual Environment and Dependencies:
 
    ```bash
-   python -m venv venv
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows, use: .\venv\Scripts\activate
+   pip install -r requirements.txt # Assuming you have a requirements file, otherwise install:
+   # pip install Flask Flask-JWT-Extended mongoengine werkzeug python-dotenv
    ```
 
-   * On **Windows**:
+3. Configure Environment Variables:
+   Create a .env file in the root of the backend directory with your MongoDB connection string and JWT secret.
 
-     ```bash
-     venv\Scripts\activate
-     ```
-   * On **Mac/Linux**:
-
-     ```bash
-     source venv/bin/activate
-     ```
-
-3. Install required dependencies:
+   .env example
 
    ```bash
-   pip install -r requirements.txt
+   MONGO_URI="mongodb://localhost:27017/project_tracker_db"
+   JWT_SECRET_KEY="your_super_secret_key"
    ```
 
-4. Create a `.env` file in the `backend/` directory and add:
-
-   ```
-   MONGO_URI=mongodb://localhost:27017/ser515
-   FLASK_ENV=development
-   SECRET_KEY=yourSecretKey
-   PORT=5000
-   ```
-
-5. Start the Flask backend server:
+4. Run the Server:
 
    ```bash
    python run.py
    ```
 
-   You should see:
+The backend API will typically run on http://127.0.0.1:5000.
 
-   ```
-   * Running on http://localhost:5000
-   ```
+### 2. Frontend Setup (React)
 
----
-
-### 3️⃣ Frontend Setup (React + Vite)
-
-1. Open a new terminal (keep the backend running).
-
-2. Navigate to the frontend directory:
+1. Navigate to the Frontend Directory:
 
    ```bash
-   cd ../frontend
+   cd [project-folder]/frontend
    ```
 
-3. Install dependencies:
+2. Install Dependencies:
 
    ```bash
    npm install
    ```
 
-4. Create a `.env` file in the `frontend/` directory (if not present) and add:
-
-   ```
-   VITE_API_URL=http://localhost:5000
-   ```
-
-5. Start the frontend development server:
+3. Run the Client:
 
    ```bash
-   npm run dev
+   npm run dev  # Or yarn dev, depending on your setup
    ```
 
-   You should see something like:
-
-   ```
-   Local: http://localhost:5173/
-   ```
-
-6. Open the link in your browser:
-   👉 [http://localhost:5173](http://localhost:5173)
+The React application should open in your browser (e.g., http://localhost:5173).
 
 ---
 
