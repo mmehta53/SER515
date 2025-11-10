@@ -1,0 +1,154 @@
+.story-list-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Form and Preview Side-by-Side Layout */
+.form-preview-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.form-section {
+  flex: 1;
+  min-width: 0; /* Allows flex item to shrink below content size */
+}
+
+.preview-section {
+  flex: 0 0 auto; /* Don't grow or shrink */
+}
+
+@media (max-width: 1024px) {
+  .form-preview-layout {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .preview-section {
+    width: 100%;
+  }
+}
+
+.story-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.story-list-header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 2rem;
+}
+
+.btn-large {
+  padding: 0.875rem 2rem;
+  font-size: 1.1rem;
+}
+
+.btn-primary {
+  background-color: #646cff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #535bf2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(100, 108, 255, 0.3);
+}
+
+.error-banner {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #c33;
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #c33;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state h2 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .stories-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .story-list-container {
+    padding: 1rem;
+  }
+
+  .story-list-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .story-list-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .btn-large {
+    width: 100%;
+  }
+}
+
