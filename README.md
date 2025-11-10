@@ -23,7 +23,6 @@ This platform helps streamline **release planning**, **user story management**, 
 - 🌟 **MVP Identification:** Highlight key stories for initial releases.
 - ✅ **Sprint Readiness:** Mark user stories ready for sprint inclusion.
 - 🔗 **Tool Integrations:** Export stories for tools like Jira or Taiga.
-- 🤖 **AI Support (Optional):** Integrate with AI-assisted planning tools.
 - 💻 **Responsive Frontend:** Intuitive interface built with React and Vite.
 - 🧾 **Scalable Backend:** Flask + MongoDB setup for efficient data handling.
 
@@ -46,7 +45,7 @@ Follow these steps to set up and run the project on your local machine.
 
 ### 🧰 Prerequisites
 Ensure you have the following installed:
-- [Python 3.8+](https://www.python.org/downloads/)
+- [Python 3.10+](https://www.python.org/downloads/)
 - [Node.js 18+](https://nodejs.org/)
 - [npm](https://www.npmjs.com/)
 - [Git](https://git-scm.com/)
@@ -62,8 +61,8 @@ Follow these steps to set up and run the project locally.
 1. Clone the Repository:
 
    ```bash
-   git clone [your-repo-link]
-   cd [project-folder]/backend
+   git clone https://github.com/mmehta53/SER515
+   cd SER515/backend
    ```
 
 2. Set up Virtual Environment and Dependencies:
@@ -71,8 +70,7 @@ Follow these steps to set up and run the project locally.
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows, use: .\venv\Scripts\activate
-   pip install -r requirements.txt # Assuming you have a requirements file, otherwise install:
-   # pip install Flask Flask-JWT-Extended mongoengine werkzeug python-dotenv
+   pip install -r requirements.txt
    ```
 
 3. Configure Environment Variables:
@@ -81,7 +79,7 @@ Follow these steps to set up and run the project locally.
    .env example
 
    ```bash
-   MONGO_URI="mongodb://localhost:27017/project_tracker_db"
+   MONGO_URI="mongodb://localhost:27017/project_tracker_db" #.env file already set in the main branch
    JWT_SECRET_KEY="your_super_secret_key"
    ```
 
@@ -98,7 +96,7 @@ The backend API will typically run on http://127.0.0.1:5000.
 1. Navigate to the Frontend Directory:
 
    ```bash
-   cd [project-folder]/frontend
+   cd SER515/frontend
    ```
 
 2. Install Dependencies:
@@ -110,17 +108,10 @@ The backend API will typically run on http://127.0.0.1:5000.
 3. Run the Client:
 
    ```bash
-   npm run dev  # Or yarn dev, depending on your setup
+   npm run dev  
    ```
 
-The React application should open in your browser (e.g., http://localhost:5173).
-
----
-
-## 🔗 Connecting Frontend and Backend
-
-The frontend automatically connects to the Flask backend using the API URL defined in the `.env` file (`VITE_API_URL`).
-Ensure both servers (frontend and backend) are running simultaneously.
+The React application should open in your browser (http://localhost:5173).
 
 ---
 
@@ -130,7 +121,5 @@ Ensure both servers (frontend and backend) are running simultaneously.
 | ------------------------------------ | --------------------------------------------------------------------------- |
 | `ModuleNotFoundError`                | Reinstall dependencies or activate your virtual environment.                |
 | `MongoDB connection failed`          | Ensure MongoDB is running and the URI in `.env` is correct.                 |
-| `Frontend not connecting to backend` | Verify `VITE_API_URL` in frontend `.env` points to the correct backend URL. |
-| `Port already in use`                | Change the port number in the `.env` file.                                  |
 
 ---
