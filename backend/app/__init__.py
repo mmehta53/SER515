@@ -1,38 +1,34 @@
 # app/__init__.py
 
 from flask import Flask
-from pymongo import MongoClient
-from .config import Config
-
-# Global MongoDB client instance
-mongo_client = None
-db = None
+from flask_cors import CORS
+from app.config import Config
+from app.database import MongoDB
 
 # Make sure this function signature is EXACTLY correct
 def create_app():
-    global mongo_client, db
-    
     app = Flask(__name__)
-    
-    # Load configuration
     app.config.from_object(Config)
     
+    # Enable CORS for frontend communication
+    CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE"], "allow_headers": ["Content-Type"]}})
+    
     # Initialize MongoDB connection
-    try:
-        mongo_client = MongoClient(app.config['MONGODB_URI'])
-        # Get the database using the configured database name
-        db = mongo_client[app.config['MONGODB_DB_NAME']]
-        # Test the connection
-        mongo_client.admin.command('ping')
-        print(f"✓ Successfully connected to MongoDB (Database: {app.config['MONGODB_DB_NAME']})")
-    except Exception as e:
-        print(f"✗ Failed to connect to MongoDB: {e}")
-        raise
-
+    if not MongoDB.initialize():
+        app.logger.error("Failed to connect to MongoDB. Please check your connection string.")
+    
     # Register Blueprints
-    # (Assuming main_bp is imported and defined in app/routes/main.py)
     from .routes.main import main_bp
+    from .routes.stories import stories_bp
     app.register_blueprint(main_bp)
+    app.register_blueprint(stories_bp, url_prefix='/api/stories')
+    
+    # Close MongoDB connection on app teardown
+    @app.teardown_appcontext
+    def close_db(error):
+        # MongoDB connection is managed globally, so we don't close it here
+        # but we could add cleanup logic if needed
+        pass
 
     return app
 
