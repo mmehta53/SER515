@@ -112,3 +112,126 @@ def get_ideas_by_project(proj_id):
         
     except Exception as e:
         return jsonify({"msg": "failed to fetch ideas", "error": str(e)}), 500
+
+@ideas_bp.route("/<idea_id>", methods=["GET"])
+@jwt_required()
+def get_idea(idea_id):
+    """Get a specific idea by ID"""
+    try:
+        idea = Idea.objects.get(ideaId=idea_id)
+        return jsonify(idea.to_dict()), 200
+    except DoesNotExist:
+        return jsonify({"msg": "idea not found"}), 404
+    except Exception as e:
+        return jsonify({"msg": "error", "error": str(e)}), 500
+
+
+@ideas_bp.route("/<idea_id>/upvote", methods=["POST"])
+@jwt_required()
+def upvote_idea(idea_id):
+    """Upvote an idea"""
+    try:
+        user_id = get_jwt_identity()
+        idea = Idea.objects.get(ideaId=idea_id)
+        
+        # Check if user has already voted
+        existing_vote = next((v for v in (idea.votes or []) if v.userId == user_id), None)
+        
+        if existing_vote:
+            if existing_vote.voteType == 'upvote':
+                return jsonify({"msg": "user has already upvoted this idea"}), 400
+            else:
+                # Remove downvote and add upvote
+                idea.votes.remove(existing_vote)
+                idea.downvotes -= 1
+        
+        # Add upvote
+        vote = Vote(userId=user_id, voteType='upvote')
+        idea.votes.append(vote)
+        idea.upvotes += 1
+        idea.save()
+        
+        return jsonify(idea.to_dict()), 200
+        
+    except DoesNotExist:
+        return jsonify({"msg": "idea not found"}), 404
+    except Exception as e:
+        return jsonify({"msg": "error", "error": str(e)}), 500
+
+
+@ideas_bp.route("/<idea_id>/downvote", methods=["POST"])
+@jwt_required()
+def downvote_idea(idea_id):
+    """Downvote an idea"""
+    try:
+        user_id = get_jwt_identity()
+        idea = Idea.objects.get(ideaId=idea_id)
+        
+        # Check if user has already voted
+        existing_vote = next((v for v in (idea.votes or []) if v.userId == user_id), None)
+        
+        if existing_vote:
+            if existing_vote.voteType == 'downvote':
+                return jsonify({"msg": "user has already downvoted this idea"}), 400
+            else:
+                # Remove upvote and add downvote
+                idea.votes.remove(existing_vote)
+                idea.upvotes -= 1
+        
+        # Add downvote
+        vote = Vote(userId=user_id, voteType='downvote')
+        idea.votes.append(vote)
+        idea.downvotes += 1
+        idea.save()
+        
+        return jsonify(idea.to_dict()), 200
+        
+    except DoesNotExist:
+        return jsonify({"msg": "idea not found"}), 404
+    except Exception as e:
+        return jsonify({"msg": "error", "error": str(e)}), 500
+
+
+@ideas_bp.route("/<idea_id>/comment", methods=["POST"])
+@jwt_required()
+def add_comment(idea_id):
+    """Add a comment to an idea
+    
+    Expected JSON payload:
+    {
+        "text": "comment text"
+    }
+    """
+    try:
+        user_id = get_jwt_identity()
+        claims = get_jwt()
+        payload = request.get_json() or {}
+        
+        if not payload.get("text"):
+            return jsonify({"msg": "comment text is required"}), 400
+        
+        idea = Idea.objects.get(ideaId=idea_id)
+        
+        # Get user name
+        user = User.objects(userId=user_id).first()
+        user_name = f"{user.firstName} {user.lastName}".strip() if user else "Unknown"
+        
+        # Create comment
+        comment = Comment(
+            userId=user_id,
+            userName=user_name,
+            text=payload["text"].strip()
+        )
+        
+        if not idea.comments:
+            idea.comments = []
+        
+        idea.comments.append(comment)
+        idea.save()
+        
+        return jsonify(idea.to_dict()), 200
+        
+    except DoesNotExist:
+        return jsonify({"msg": "idea not found"}), 404
+    except Exception as e:
+        return jsonify({"msg": "error", "error": str(e)}), 500
