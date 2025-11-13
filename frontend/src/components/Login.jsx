@@ -36,7 +36,7 @@ export default function Login() {
       const roleFromResp = (user && user.role) || (response.data && response.data.role) || null;
 
       // Redirect based on role
-      if (roleFromResp === "admin") navigate("/admin");
+      if (roleFromResp === "admin") navigate("/admindashboard");
       else if (roleFromResp === "user") navigate("/user");
       else navigate("/dashboard");
     } catch (err) {
