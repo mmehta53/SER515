@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -57,9 +58,20 @@ function Dashboard() {
         // Clear all auth-related data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        Cookies.remove('projectId');
+        Cookies.remove('projectName');
         
         // Redirect to login page
         navigate('/');
+    };
+
+    const handleProjectClick = (project) => {
+        // Store project ID and name in cookies
+        Cookies.set('projectId', project.projId, { expires: 7 });
+        Cookies.set('projectName', project.name, { expires: 7 });
+        
+        // Navigate to project page without projId in URL
+        navigate('/project', { state: { project } });
     };
 
     return (
@@ -133,7 +145,12 @@ function Dashboard() {
                 ) : (
                     <div className="projects-grid">
                         {projects.map((project) => (
-                            <div key={project.projId} className="project-card">
+                            <div 
+                                key={project.projId} 
+                                className="project-card"
+                                onClick={() => handleProjectClick(project)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <h3 className="project-name">{project.name}</h3>
                                 <p className="project-description">{project.description}</p>
                                 <div className="project-stats">
