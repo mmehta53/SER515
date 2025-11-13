@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
+import Project from "./components/Project";
 import { PrivateRoute, AuthRoute } from "./components/PrivateRoute";
 
 function App() {
@@ -39,6 +40,14 @@ function App() {
           element={
             <AuthRoute>
               <Dashboard />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/project" 
+          element={
+            <AuthRoute>
+              <Project />
             </AuthRoute>
           } 
         />
