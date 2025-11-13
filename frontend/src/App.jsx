@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import { PrivateRoute, AuthRoute } from "./components/PrivateRoute";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   return (
@@ -16,16 +17,24 @@ function App() {
             </PrivateRoute>
           } 
         />
-
-        {/* Protected routes - require authentication */}
+        {/* Login route - protected from authenticated users */}
         <Route 
+          path="/admindashboard" 
+          element={
+            <AuthRoute>
+              <AdminDashboard/>
+            </AuthRoute>
+          } 
+          />
+        {/* Protected routes - require authentication */}
+        {/* <Route 
           path="/admin" 
           element={
             <AuthRoute>
               <Dashboard />
             </AuthRoute>
           } 
-        />
+        /> */}
         <Route 
           path="/user" 
           element={

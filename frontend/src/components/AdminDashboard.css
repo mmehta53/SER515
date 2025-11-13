@@ -1,0 +1,182 @@
+/* ===== General Layout ===== */
+.admin-dashboard {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* ===== Header ===== */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1f2937;
+  color: #fff;
+  padding: 15px 25px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
+
+.admin-header h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* ===== Organization Section ===== */
+.organizations-section {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.organizations-section h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #374151;
+}
+
+.org-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.org-card {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 15px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.org-card:hover {
+  background-color: #e0f2fe;
+  border-color: #38bdf8;
+}
+
+/* ===== User Table ===== */
+.user-section {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
+.user-section h2 {
+  font-size: 18px;
+  color: #374151;
+  margin-bottom: 15px;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 15px;
+  text-align: left;
+}
+
+.user-table th {
+  background-color: #f3f4f6;
+  color: #111827;
+  font-weight: 600;
+}
+
+.user-table tr:hover {
+  background-color: #f9fafb;
+}
+
+/* ===== Add User Form ===== */
+.add-user-form {
+  margin-top: 25px;
+  background-color: #f9fafb;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.add-user-form h3 {
+  color: #1f2937;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.add-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.add-btn:hover {
+  background-color: #1e40af;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .org-list {
+    flex-direction: column;
+  }
+
+  .org-card {
+    width: 100%;
+  }
+
+  .user-table th,
+  .user-table td {
+    font-size: 13px;
+    padding: 8px;
+  }
+}
