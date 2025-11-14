@@ -125,6 +125,47 @@ def get_idea(idea_id):
     except Exception as e:
         return jsonify({"msg": "error", "error": str(e)}), 500
 
+@ideas_bp.route("/<idea_id>", methods=["PUT"])
+@jwt_required()
+def update_idea(idea_id):
+    """Update an existing idea
+    
+    Allows updating title, description, tags, and status.
+    """
+    try:
+        payload = request.get_json() or {}
+        
+        idea = Idea.objects.get(ideaId=idea_id)
+        
+        # Update fields if present in payload
+        if "title" in payload:
+            title = payload["title"].strip()
+            if len(title) < 3:
+                return jsonify({"errors": ["title must be at least 3 characters"]}), 400
+            idea.title = title
+            
+        if "description" in payload:
+            description = payload["description"].strip()
+            if len(description) < 5:
+                return jsonify({"errors": ["description must be at least 5 characters"]}), 400
+            idea.description = description
+            
+        if "tags" in payload:
+            idea.tags = parse_tags(payload["tags"])
+            
+        if "status" in payload:
+            idea.status = payload["status"]
+            
+        idea.save()
+        
+        return jsonify(idea.to_dict()), 200
+        
+    except DoesNotExist:
+        return jsonify({"msg": "idea not found"}), 404
+    except ValidationError as e:
+        return jsonify({"msg": "validation error", "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"msg": "failed to update idea", "error": str(e)}), 500
 
 @ideas_bp.route("/<idea_id>/upvote", methods=["POST"])
 @jwt_required()
