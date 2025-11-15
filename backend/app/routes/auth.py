@@ -1,10 +1,88 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies
+from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies, jwt_required, get_jwt_identity, get_jwt
 from app.models.user import User
-from datetime import datetime, timedelta
+from datetime import datetime
+from werkzeug.security import generate_password_hash
+import uuid
+import random # Used for temporary password generation
+
 # from flask_cors import cross_origin
 
 auth_bp = Blueprint('auth', __name__)
+
+# --- Helper function for Admin role checking (NEW) ---
+def admin_required():
+    claims = get_jwt()
+    if claims.get('role') != 'admin':
+        return False
+    return True
+
+@auth_bp.route('/register-user', methods=['POST'])
+@jwt_required()
+def register_new_user():
+    """
+    Admin-only route to create a new user account.
+    Requires: Admin role in JWT claims.
+    Generates: A temporary password.
+    """
+    if not admin_required():
+        return jsonify({'error': 'Admin privileges required'}), 403
+
+    data = request.get_json()
+    # 1. Validate required fields
+    required_fields = ['email', 'firstName', 'lastName', 'role', 'orgId','password']
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Missing required fields: email, firstName, lastName, role, orgId'}), 400
+
+    email = data['email']
+    role = data['role']
+    temp_password = data['password']
+    # The user story specifies roles 'Pig' or 'Chicken'
+    if role not in ['pig', 'chicken']:
+        return jsonify({'error': 'Role must be Pig or Chicken'}), 400
+
+    # 2. Ensure email is unique
+    if User.objects(email=email).first():
+        return jsonify({'error': 'User with this email already exists.'}), 409
+
+    # 3. Generate temporary password
+    # A simple, secure random password for initial login
+    # temp_password = str(uuid.uuid4())[:8] + str(random.randint(100, 999))
+    # temp_password = "123456"
+    password_hash = generate_password_hash(temp_password)
+
+    # 4. Create new user
+    try:
+        new_user = User(
+            userId=str(uuid.uuid4()),
+            email=email,
+            passwordHash=password_hash,
+            firstName=data['firstName'],
+            lastName=data['lastName'],
+            role=role,
+            isActive=True,  # Account starts active
+            orgId=data['orgId'], # Assuming Admin provides the Org ID for the new user
+            createdAt=datetime.utcnow()
+        )
+        new_user.save()
+        
+        # 5. Log the Admin action (Acceptance Criteria)
+        # For a full audit log, you would write this to a separate AuditLog collection.
+        # For this example, we'll print to the console.
+        admin_id = get_jwt_identity() # The userId of the admin performing the action
+        print(f"AUDIT LOG: Admin User {admin_id} created new user {email} with role {role} at {datetime.utcnow()}")
+
+        # 6. Return success with the temporary password for notification/email
+        return jsonify({
+            'message': 'User created successfully. Temporary password provided for notification.',
+            'tempPassword': temp_password,
+            'userId': new_user.userId
+        }), 201
+    
+    except Exception as e:
+        # Catch any database or internal errors
+        return jsonify({'error': f'An error occurred during user creation: {str(e)}'}), 500
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -71,7 +149,8 @@ def login():
     set_access_cookies(response, access_token)
     set_refresh_cookies(response, refresh_token)
     
-    # Set CORS headers
+    # Set CORS
+    # response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
     # response.headers.add('Access-Control-Allow-Credentials', 'true')
-    
-    return response, 200
+
+    return response
