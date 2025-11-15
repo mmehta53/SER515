@@ -1,0 +1,311 @@
+/* Page container */
+.idea-creation-container {
+  max-width: 980px;           
+  margin: 28px auto;
+  padding: 20px;
+  background: #fbfcfe;       
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(14, 30, 50, 0.06);
+  font-family: "Segoe UI", system-ui, -apple-system;
+  color: #1f2937;
+}
+
+/* Add new idea button */
+.toggle-form-btn {
+  display: inline-block;
+  background: linear-gradient(180deg,#1682d6,#0b63a8);
+  color: #fff;
+  font-weight: 700;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(11, 99, 168, 0.12);
+  margin-bottom: 18px;
+  font-size: 1.05rem;
+}
+
+/* Idea creation form */
+.idea-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  margin-bottom: 20px;
+}
+
+/* Larger labels if you want them visible */
+.idea-form label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+/* Big inputs to match the tall stacked inputs in your sketch */
+.idea-form input[type="text"],
+.idea-form input[type="search"],
+.idea-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #e6e9ef;
+  font-size: 1rem;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(11, 121, 208, 0.03);
+}
+
+/* Description */
+.idea-form textarea {
+  min-height: 120px;   
+  resize: vertical;
+}
+
+/* Tags */
+.idea-form .tags-input {
+  min-height: 44px;
+}
+
+/* Submit button (Create Idea) */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.submit-btn {
+  background: #22a55e;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.submit-btn:hover { filter: brightness(0.95); }
+
+/*  Filter row under form (from sketch 1) */
+/* .filter-container {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 18px 0;
+  align-items: center;
+}
+.filter-container input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e6e9ef;
+}
+.filter-container button {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #6b7280;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+} */
+
+
+/* Ideas list layout and cards */
+.ideas-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+}
+.ideas-column {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  min-height: 200px;
+}
+.column-title {
+  font-weight: 800;
+  text-transform: capitalize;
+  margin-bottom: 8px;
+}
+.ideas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+.ideas-list .idea-card {
+  background: #fff;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  box-shadow: 0 6px 18px rgba(6, 98, 168, 0.03);
+  margin-bottom: 12px;
+}
+.idea-card { cursor: grab; }
+.idea-card:hover { cursor: pointer; transform: translateY(-2px); transition: transform 120ms ease; }
+.idea-card.dragging { cursor: grabbing; }
+.idea-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.idea-card .title {
+  font-weight: 800;
+  font-size: 1.02rem;
+}
+.idea-index { font-weight: 900; display:inline-block; margin-right:8px; }
+.idea-creator { display:inline-block; color:#6b7280; margin-left:6px; }
+.idea-title { font-weight:800; margin-top:6px; margin-bottom:6px; }
+.idea-description { margin-bottom:8px; color:#374151; }
+.idea-card .meta {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+.idea-card .description {
+  color: #374151;
+  margin-bottom: 8px;
+}
+.idea-card .tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.tag {
+  background: #eef2ff;
+  color: #0b63a8;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+/* Actions row: upvote / downvote / comment */
+/* .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.actions button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+.upvote { background: #0b79d0; color: #fff; }
+.downvote { background: #df5b5b; color: #fff; }
+.comment-btn { background: #6b7280; color: #fff; } */
+
+/* Comment box inline under idea (sketch shows simple input) */
+/* .comment-box {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.comment-box textarea {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+}
+.comment-box .btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+.comment-box .submit-comment { background: #0b79d0; color: #fff; }
+.comment-box .cancel-comment { background: #6b7280; color: #fff; } */
+
+/* Comments list under each idea */
+/* .comments-list {
+  margin-top: 12px;
+  border-top: 1px dashed #eef2f6;
+  padding-top: 10px;
+}
+.comment-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f4f6f8;
+  color: #111827;
+}
+.comment-item strong { margin-right: 6px; } */
+
+/* Loading & error */
+.loading {
+  text-align: center;
+  font-weight: 700;
+  color: #374151;
+}
+.error-message {
+  color: #b91c1c;
+  background: rgba(185,28,28,0.06);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.upvote.disabled, .downvote.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Actions row styling */
+.actions-inline {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:8px;
+}
+.actions button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+.upvote { background: #0b79d0; color: #fff; }
+.downvote { background: #df5b5b; color: #fff; }
+.comment-btn { background: #6b7280; color: #fff; }
+
+/* Comment box inline under idea */
+.comment-box {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.comment-box textarea {
+  flex: 1;
+  min-height: 60px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+}
+.submit-comment { background: #0b79d0; color: #fff; padding:8px 10px; border-radius:8px; border:none; }
+.cancel-comment { background: #6b7280; color: #fff; padding:8px 10px; border-radius:8px; border:none; }
+
+/* Drag & drop visuals */
+.ideas-column.drag-over {
+  outline: 2px dashed rgba(11, 121, 208, 0.35);
+  background: linear-gradient(180deg, rgba(11,121,208,0.02), transparent);
+}
+.idea-card.dragging {
+  opacity: 0.6;
+  transform: scale(0.995);
+  box-shadow: 0 4px 12px rgba(6,98,168,0.08);
+}
+
+/* Inline edit form inside card */
+.idea-edit-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  margin-bottom: 8px;
+}
+.edit-actions { display:flex; gap:8px; justify-content:flex-end; }
+.save-edit { background:#0b79d0; color:#fff; padding:8px 12px; border-radius:8px; border:none; }
+.cancel-edit { background:#6b7280; color:#fff; padding:8px 12px; border-radius:8px; border:none; }
+
