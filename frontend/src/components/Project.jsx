@@ -117,7 +117,7 @@ function Project() {
                     {activePage === 'ideation' && (
                         <div className="page-content">
                             <h2>Ideation</h2>
-                            <p>Coming soon...</p>
+                            {/* <p>Coming soon...</p> */}
                         </div>
                     )}
 
