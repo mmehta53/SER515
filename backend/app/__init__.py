@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager
 from mongoengine import connect
 from app.config import Config
 from flask_cors import CORS
+from app.utils.email import mail
 
 jwt = JWTManager()
 
@@ -17,6 +18,9 @@ def create_app():
     # Connect to MongoDB with database name
     connect(db='SER515', host=app.config['MONGO_URI'])
     jwt.init_app(app)
+    
+    # Initialize Flask-Mail
+    mail.init_app(app)
     
     from app.models import user, organization, project  # Import models
     from app.routes.auth import auth_bp

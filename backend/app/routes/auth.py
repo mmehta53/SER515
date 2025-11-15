@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies, jwt_required, get_jwt_identity, get_jwt
 from app.models.user import User
+from app.utils.email import send_welcome_email
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 import uuid
-import random # Used for temporary password generation
 
 # from flask_cors import cross_origin
 
@@ -66,17 +66,28 @@ def register_new_user():
         )
         new_user.save()
         
-        # 5. Log the Admin action (Acceptance Criteria)
+        # 5. Send welcome email with account details
+        email_sent = send_welcome_email(
+            user_email=email,
+            first_name=data['firstName'],
+            last_name=data['lastName'],
+            password=temp_password,
+            role=role,
+            org_id=data['orgId']
+        )
+        
+        # 6. Log the Admin action (Acceptance Criteria)
         # For a full audit log, you would write this to a separate AuditLog collection.
         # For this example, we'll print to the console.
         admin_id = get_jwt_identity() # The userId of the admin performing the action
         print(f"AUDIT LOG: Admin User {admin_id} created new user {email} with role {role} at {datetime.utcnow()}")
 
-        # 6. Return success with the temporary password for notification/email
+        # 7. Return success with the temporary password for notification/email
         return jsonify({
-            'message': 'User created successfully. Temporary password provided for notification.',
+            'message': 'User created successfully. Welcome email sent.',
             'tempPassword': temp_password,
-            'userId': new_user.userId
+            'userId': new_user.userId,
+            'emailSent': email_sent
         }), 201
     
     except Exception as e:
