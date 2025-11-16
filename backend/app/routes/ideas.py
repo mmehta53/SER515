@@ -133,9 +133,13 @@ def update_idea(idea_id):
     Allows updating title, description, tags, and status.
     """
     try:
+        user_id = get_jwt_identity()
         payload = request.get_json() or {}
         
         idea = Idea.objects.get(ideaId=idea_id)
+
+        if idea.createdBy != user_id:
+            return jsonify({"msg": "unauthorized"}), 403
         
         # Update fields if present in payload
         if "title" in payload:

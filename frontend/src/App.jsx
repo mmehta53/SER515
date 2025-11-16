@@ -45,14 +45,6 @@ function App() {
           } 
         />
         <Route 
-          path="/idea-dashboard" 
-          element={
-            <AuthRoute>
-              <IdeaCreation />
-            </AuthRoute>
-          } 
-        />
-        <Route 
           path="/project" 
           element={
             <AuthRoute>
