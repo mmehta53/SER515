@@ -115,6 +115,12 @@ The React application should open in your browser (http://localhost:5173).
 
 ---
 
+## User Credentials
+
+[Link to user credentials](https://docs.google.com/document/d/1BcGEBbrLvDA2MW09rrvSeTsExqdPNBQEnWbBIc5qYZs/edit?usp=sharing)
+
+---
+
 ## 🧠 Troubleshooting
 
 | Problem                              | Possible Fix                                                                |
