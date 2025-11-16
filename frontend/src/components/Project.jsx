@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import './Project.css';
+import IdeaCreation from './IdeaCreation'; // Import the IdeaCreation component
 
 function Project() {
     const navigate = useNavigate();
@@ -116,8 +117,7 @@ function Project() {
                     {/* Ideation Page */}
                     {activePage === 'ideation' && (
                         <div className="page-content">
-                            <h2>Ideation</h2>
-                            {/* <p>Coming soon...</p> */}
+                            <IdeaCreation project={projectInfo} />
                         </div>
                     )}
 

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import api from "../utils/api";
 import './IdeaCreation.css';
-
-const IdeaCreation = ({ currentUser }) => {
+ 
+const IdeaCreation = ({ project }) => {
   const [ideas, setIdeas] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    project: "",   // this will map to projId when posting
+    project: project?.projId || "",   // this will map to projId when posting
     tags: ""
   });
 
@@ -20,25 +20,13 @@ const IdeaCreation = ({ currentUser }) => {
   const [editingIdeaId, setEditingIdeaId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', description: '', tags: '' });
 
-  useEffect(() => {
-    // On mount, try to prefill project id from localStorage or cookies and load ideas
-    const stored = localStorage.getItem('projectId');
-    let projectId = stored || "";
-    if (!projectId) {
-      // try to read a cookie named projectId if present
-      const m = document.cookie.match(/(?:^|; )projectId=([^;]+)/);
-      if (m) projectId = decodeURIComponent(m[1]);
-    }
-    // DOM fallback: Project sidebar renders project ID in .project-id-info .info-value
-    if (!projectId) {
-      const el = document.querySelector('.project-id-info .info-value');
-      if (el && el.textContent) projectId = el.textContent.trim();
-    }
+ useEffect(() => {
+    const projectId = project?.projId;
     if (projectId) {
       setFormData(prev => ({ ...prev, project: projectId }));
       loadIdeas(projectId);
     }
-  }, []); // empty deps: run once on mount
+  }, [project]); // Re-run if project prop changes
 
   const normalizeId = (idea) => idea.ideaId || idea.id || idea._id || "";
   const getCurrentUserId = () => {
@@ -185,7 +173,11 @@ const IdeaCreation = ({ currentUser }) => {
     // Persist edit to backend
     (async () => {
       try {
-        const payload = { title: updated.title, description: updated.description, tags: updated.tags };
+        const payload = {
+          title: updated.title,
+          description: updated.description,
+          tags: editForm.tags, // Send the raw comma-separated string
+        };
         const resp = await api.put(`/ideas/${encodeURIComponent(id)}`, payload);
         const saved = resp.data;
         const norm = { ...saved, _localId: normalizeId(saved), tags: saved.tags || [], comments: saved.comments || [] };
@@ -273,7 +265,7 @@ const IdeaCreation = ({ currentUser }) => {
     // Persist status change
     (async () => {
       try {
-        await api.patch(`/ideas/${encodeURIComponent(id)}`, { status: targetStatus });
+        await api.put(`/ideas/${encodeURIComponent(id)}`, { status: targetStatus });
       } catch (err) {
         console.error('Failed to persist move', err);
         // revert to previous state on failure
@@ -345,13 +337,6 @@ const IdeaCreation = ({ currentUser }) => {
             required
           />
           <input
-            name="project"
-            value={formData.project}
-            onChange={handleChange}
-            placeholder="Project ID (projId)"
-            required
-          />
-          <input
             name="tags"
             value={formData.tags}
             onChange={handleChange}
@@ -375,7 +360,7 @@ const IdeaCreation = ({ currentUser }) => {
       </div>
       */}
 
-      <h2>Ideas</h2>
+      <h2 className="ideas-main-header">Ideas Board</h2>
       {ideas.length === 0 ? (
         <p>No ideas created</p>
       ) : (
@@ -387,11 +372,11 @@ const IdeaCreation = ({ currentUser }) => {
                 {ideas.filter(i => ((i.status||'new').toLowerCase() === col)).map((idea) => {
                   const id = idea._localId || idea.ideaId || idea.id || idea._id;
                   const isEditing = editingIdeaId === id;
+                  const isCreator = idea.createdBy === getCurrentUserId();
                   return (
                     <li key={id} className={`idea-card ${draggedIdeaId === id ? 'dragging' : ''}`} draggable onDragStart={(e) => onDragStart(e, idea)} onDragEnd={onDragEnd}>
-                      <div className="idea-index">Idea-{(ideas.filter(i=>((i.status||'new').toLowerCase())===col).indexOf(idea)+1)}</div>
-                      <div className="idea-creator">by {idea.createdByName || (idea.createdBy || '').slice(0,8)}</div>
                       <div className="idea-title" style={{fontWeight:700}}>{idea.title}</div>
+                      <div className="idea-creator">by {idea.createdByName || (idea.createdBy || '').slice(0,8)}</div>
 
                       {isEditing ? (
                         <div className="idea-edit">
@@ -410,8 +395,9 @@ const IdeaCreation = ({ currentUser }) => {
                           <div className="actions-inline">
                             <button className={`upvote ${idea.currentUserVote==='upvote'?'disabled':''}`} onClick={() => handleVoteClick(idea, 'upvote')} disabled={idea.currentUserVote==='upvote'}>▲ {idea.upvotes || 0}</button>
                             <button className={`downvote ${idea.currentUserVote==='downvote'?'disabled':''}`} onClick={() => handleVoteClick(idea, 'downvote')} disabled={idea.currentUserVote==='downvote'}>▼ {idea.downvotes || 0}</button>
-                            <button className="comment-btn" onClick={() => openCommentBox(id)}>Comment</button>
-                            <button className="comment-btn" onClick={() => startEditing(idea)}>Edit</button>
+                            <button className="comment-btn" onClick={() => openCommentBox(id)}>💬 Comment</button>
+                            {isCreator && <button className="comment-btn" onClick={() => startEditing(idea)}>✏️ Edit</button>}
+                            {/* <button className="comment-btn" onClick={() => startEditing(idea)}>✏️ Edit</button> */}
                           </div>
                         </>
                       )}
@@ -424,7 +410,7 @@ const IdeaCreation = ({ currentUser }) => {
                             </div>
                           ))
                         ) : (
-                          <div className="no-comments"><em>No comments yet</em></div>
+                          <div className="no-comments">No comments yet</div>
                         )}
                       </div>
 
