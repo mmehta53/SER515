@@ -12,7 +12,7 @@ export const PrivateRoute = ({ children }) => {
   
   // If user is logged in, redirect to appropriate dashboard based on role
   if (user.role === 'admin') {
-    return <Navigate to="/admin" />;
+    return <Navigate to="/admindashboard" />;
   } else if (user.role === 'user') {
     return <Navigate to="/user" />;
   } else {

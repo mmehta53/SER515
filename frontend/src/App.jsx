@@ -4,6 +4,7 @@ import Dashboard from "./components/Dashboard";
 import IdeaCreation from "./components/IdeaCreation";
 import Project from "./components/Project";
 import { PrivateRoute, AuthRoute } from "./components/PrivateRoute";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   return (
@@ -18,16 +19,24 @@ function App() {
             </PrivateRoute>
           } 
         />
-
-        {/* Protected routes - require authentication */}
+        {/* Login route - protected from authenticated users */}
         <Route 
+          path="/admindashboard" 
+          element={
+            <AuthRoute>
+              <AdminDashboard/>
+            </AuthRoute>
+          } 
+          />
+        {/* Protected routes - require authentication */}
+        {/* <Route 
           path="/admin" 
           element={
             <AuthRoute>
               <Dashboard />
             </AuthRoute>
           } 
-        />
+        /> */}
         <Route 
           path="/user" 
           element={

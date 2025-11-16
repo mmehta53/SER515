@@ -22,10 +22,12 @@ def create_app():
     from app.routes.auth import auth_bp
     from app.routes.projects import projects_bp
     from app.routes.ideas import ideas_bp
+    from app.routes.admin import admin_bp
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(projects_bp, url_prefix='/api/projects')
     app.register_blueprint(ideas_bp,url_prefix='/api/ideas')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
     
     return app
