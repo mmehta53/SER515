@@ -19,8 +19,10 @@ export default function Login() {
       const { user } = response.data;
       
       if (user) {
+        console.log("User logged in:", user);
         // Store user info and token in localStorage
         localStorage.setItem("user", JSON.stringify({
+          userId: user.userId,
           email: user.email,
           role: user.role,
           orgId: user.orgId
