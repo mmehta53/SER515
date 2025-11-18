@@ -5,11 +5,15 @@ const API_BASE_URL = 'http://localhost:5001/api/stories/';
  */
 export const storyAPI = {
   /**
-   * Get all user stories (backlog)
+   * Get all user stories (backlog) for a project
    */
-  getAllStories: async () => {
+  getAllStories: async (projectId) => {
     try {
-      const response = await fetch(API_BASE_URL);
+      if (!projectId) {
+        throw new Error('projectId is required');
+      }
+      
+      const response = await fetch(`${API_BASE_URL}?projectId=${encodeURIComponent(projectId)}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));

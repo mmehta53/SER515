@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { storyAPI } from '../services/api';
 import StoryCard from './StoryCard';
 import StoryForm from './StoryForm';
@@ -11,6 +12,7 @@ const StoryList = () => {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingStory, setEditingStory] = useState(null);
+  const [projectId, setProjectId] = useState(null);
   const [formData, setFormData] = useState({
     role: '',
     goal: '',
@@ -21,14 +23,28 @@ const StoryList = () => {
   });
 
   useEffect(() => {
-    loadStories();
+    // Get projectId from cookies
+    const projId = Cookies.get('projectId');
+    if (projId) {
+      setProjectId(projId);
+      loadStories(projId);
+    } else {
+      setError('No project selected. Please select a project first.');
+      setLoading(false);
+    }
   }, []);
 
-  const loadStories = async () => {
+  const loadStories = async (projId) => {
+    if (!projId) {
+      setError('No project ID available');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       setError(null);
-      const data = await storyAPI.getAllStories();
+      const data = await storyAPI.getAllStories(projId);
       setStories(data);
     } catch (err) {
       setError(err.message || 'Failed to load stories');
@@ -39,8 +55,15 @@ const StoryList = () => {
   };
 
   const handleCreate = async (storyData) => {
+    if (!projectId) {
+      setError('No project ID available');
+      return;
+    }
+    
     try {
-      await storyAPI.createStory(storyData);
+      // Add projectId to story data
+      const storyWithProject = { ...storyData, projectId };
+      await storyAPI.createStory(storyWithProject);
       setShowForm(false);
       setFormData({
         role: '',
@@ -50,7 +73,7 @@ const StoryList = () => {
         story_points: '',
         business_value: '',
       });
-      loadStories();
+      loadStories(projectId);
     } catch (err) {
       setError(err.message || 'Failed to create story');
       alert(`Error: ${err.message}`);
@@ -58,8 +81,15 @@ const StoryList = () => {
   };
 
   const handleUpdate = async (storyData) => {
+    if (!projectId) {
+      setError('No project ID available');
+      return;
+    }
+    
     try {
-      await storyAPI.updateStory(editingStory.id, storyData);
+      // Preserve projectId when updating
+      const storyWithProject = { ...storyData, projectId };
+      await storyAPI.updateStory(editingStory.id, storyWithProject);
       setEditingStory(null);
       setShowForm(false);
       setFormData({
@@ -70,7 +100,7 @@ const StoryList = () => {
         story_points: '',
         business_value: '',
       });
-      loadStories();
+      loadStories(projectId);
     } catch (err) {
       setError(err.message || 'Failed to update story');
       alert(`Error: ${err.message}`);
@@ -84,7 +114,7 @@ const StoryList = () => {
 
     try {
       await storyAPI.deleteStory(storyId);
-      loadStories();
+      loadStories(projectId);
     } catch (err) {
       setError(err.message || 'Failed to delete story');
       alert(`Error: ${err.message}`);
@@ -137,12 +167,6 @@ const StoryList = () => {
     <div className="story-list-container">
       <div className="story-list-header">
         <h1>User Stories Backlog</h1>
-        <button 
-          className="btn-primary btn-large"
-          onClick={() => setShowForm(true)}
-        >
-          + Create New Story
-        </button>
       </div>
 
       {error && (
@@ -157,13 +181,7 @@ const StoryList = () => {
       ) : stories.length === 0 ? (
         <div className="empty-state">
           <h2>No user stories yet</h2>
-          <p>Create your first user story to get started!</p>
-          <button 
-            className="btn-primary"
-            onClick={() => setShowForm(true)}
-          >
-            Create Your First Story
-          </button>
+          <p>Go to Story Builder to create your first user story!</p>
         </div>
       ) : (
         <div className="stories-grid">

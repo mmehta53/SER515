@@ -1,15 +1,16 @@
 .story-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid #dee2e6;
 }
 
 .story-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
 }
 
 .story-card-header {
@@ -23,7 +24,7 @@
 
 .story-id {
   font-weight: 700;
-  color: #646cff;
+  color: #007bff;
   font-size: 1.1rem;
 }
 
@@ -60,7 +61,7 @@
 
 .story-role {
   font-weight: 600;
-  color: #646cff;
+  color: #007bff;
   margin-bottom: 0.5rem;
   font-size: 1.05rem;
 }
@@ -94,13 +95,13 @@
 }
 
 .acceptance-text {
-  color: #666;
+  color: #6c757d;
   line-height: 1.6;
   white-space: pre-line;
-  background-color: #f9f9f9;
+  background-color: #f8f9fa;
   padding: 0.75rem;
-  border-radius: 6px;
-  border-left: 3px solid #646cff;
+  border-radius: 0.5rem;
+  border-left: 3px solid #007bff;
 }
 
 .story-metrics {
@@ -126,7 +127,7 @@
 .metric-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #646cff;
+  color: #007bff;
 }
 
 .story-card-footer {

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.database import MongoDB
+from mongoengine.connection import get_db
 from datetime import datetime
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -15,10 +15,23 @@ def object_id_to_str(doc):
 
 @stories_bp.route('/', methods=['GET'], strict_slashes=False)
 def get_stories():
-    """Get all user stories (backlog)"""
+    """Get all user stories for a project"""
     try:
-        collection = MongoDB.get_collection()
-        stories = list(collection.find().sort('created_at', -1))
+        # Get projectId from query parameter
+        project_id = request.args.get('projectId')
+        
+        if not project_id:
+            return jsonify({
+                'success': False,
+                'error': 'projectId is required'
+            }), 400
+        
+        db = get_db()
+        collection = db['stories']
+        
+        # Filter stories by projectId
+        query = {'projectId': project_id}
+        stories = list(collection.find(query).sort('created_at', -1))
         
         # Convert ObjectId to string and format dates
         for story in stories:
@@ -49,7 +62,8 @@ def get_story(story_id):
                 'error': 'Invalid story ID'
             }), 400
         
-        collection = MongoDB.get_collection()
+        db = get_db()
+        collection = db['stories']
         story = collection.find_one({'_id': ObjectId(story_id)})
         
         if not story:
@@ -88,6 +102,13 @@ def create_story():
                 'error': 'Missing required fields: role, goal, and acceptance_criteria are required'
             }), 400
         
+        # Validate projectId
+        if not data.get('projectId'):
+            return jsonify({
+                'success': False,
+                'error': 'projectId is required'
+            }), 400
+        
         # Prepare story document
         story_doc = {
             'role': data.get('role'),
@@ -96,11 +117,13 @@ def create_story():
             'acceptance_criteria': data.get('acceptance_criteria'),
             'story_points': data.get('story_points'),
             'business_value': data.get('business_value'),
+            'projectId': data.get('projectId'),
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
         }
         
-        collection = MongoDB.get_collection()
+        db = get_db()
+        collection = db['stories']
         result = collection.insert_one(story_doc)
         
         # Retrieve the created story
@@ -135,7 +158,8 @@ def update_story(story_id):
                 'error': 'Invalid story ID'
             }), 400
         
-        collection = MongoDB.get_collection()
+        db = get_db()
+        collection = db['stories']
         story = collection.find_one({'_id': ObjectId(story_id)})
         
         if not story:
@@ -177,6 +201,8 @@ def update_story(story_id):
             update_doc['story_points'] = data['story_points']
         if 'business_value' in data:
             update_doc['business_value'] = data['business_value']
+        if 'projectId' in data:
+            update_doc['projectId'] = data['projectId']
         
         # Update the story
         collection.update_one(
@@ -216,7 +242,8 @@ def delete_story(story_id):
                 'error': 'Invalid story ID'
             }), 400
         
-        collection = MongoDB.get_collection()
+        db = get_db()
+        collection = db['stories']
         result = collection.delete_one({'_id': ObjectId(story_id)})
         
         if result.deleted_count == 0:

@@ -9,16 +9,18 @@
 
 .story-form {
   background: white;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #dee2e6;
 }
 
 .story-form h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #212529;
   font-size: 1.75rem;
+  font-weight: 600;
 }
 
 .form-group {
@@ -41,18 +43,19 @@
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid #ced4da;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #646cff;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .form-group input.error,
@@ -90,30 +93,30 @@
 .btn-secondary {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .btn-primary {
-  background-color: #646cff;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #535bf2;
+  background-color: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(100, 108, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
 .btn-secondary {
-  background-color: #e0e0e0;
-  color: #333;
+  background-color: #6c757d;
+  color: white;
 }
 
 .btn-secondary:hover {
-  background-color: #d0d0d0;
+  background-color: #5a6268;
 }
 
