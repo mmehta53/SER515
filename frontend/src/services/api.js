@@ -1,5 +1,11 @@
 const API_BASE_URL = 'http://localhost:5001/api/stories/';
-
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+};
 /**
  * API service for user stories CRUD operations
  */
@@ -13,7 +19,10 @@ export const storyAPI = {
         throw new Error('projectId is required');
       }
       
-      const response = await fetch(`${API_BASE_URL}?projectId=${encodeURIComponent(projectId)}`);
+      const response = await fetch(`${API_BASE_URL}?projectId=${encodeURIComponent(projectId)}`, {
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -34,7 +43,10 @@ export const storyAPI = {
    * Get a single user story by ID
    */
   getStory: async (id) => {
-    const response = await fetch(`${API_BASE_URL}${id}`);
+    const response = await fetch(`${API_BASE_URL}${id}`, {
+      headers: getAuthHeaders(),
+      credentials: 'include'
+    });
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.error || 'Failed to fetch story');
@@ -49,10 +61,9 @@ export const storyAPI = {
     try {
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(storyData),
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -76,10 +87,9 @@ export const storyAPI = {
   updateStory: async (id, storyData) => {
     const response = await fetch(`${API_BASE_URL}${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(storyData),
+      credentials: 'include'
     });
     const data = await response.json();
     if (!response.ok) {
@@ -94,6 +104,8 @@ export const storyAPI = {
   deleteStory: async (id) => {
     const response = await fetch(`${API_BASE_URL}${id}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
+      credentials: 'include'
     });
     const data = await response.json();
     if (!response.ok) {

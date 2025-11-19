@@ -1,19 +1,23 @@
+from flask_jwt_extended import jwt_required
 from flask import Blueprint, request, jsonify
 from mongoengine.connection import get_db
 from datetime import datetime
 from bson import ObjectId
-from bson.errors import InvalidId
+import uuid
+
 
 stories_bp = Blueprint('stories', __name__)
 
-def object_id_to_str(doc):
+def convert_objectid_to_str(doc):
     """Convert MongoDB ObjectId to string in document"""
     if doc and '_id' in doc:
-        doc['id'] = str(doc['_id'])
-        del doc['_id']
+        doc['_id'] = str(doc['_id'])
     return doc
 
+
+
 @stories_bp.route('/', methods=['GET'], strict_slashes=False)
+@jwt_required()
 def get_stories():
     """Get all user stories for a project"""
     try:
@@ -35,7 +39,7 @@ def get_stories():
         
         # Convert ObjectId to string and format dates
         for story in stories:
-            object_id_to_str(story)
+            convert_objectid_to_str(story)
             # Convert datetime objects to ISO format strings
             if 'created_at' in story and isinstance(story['created_at'], datetime):
                 story['created_at'] = story['created_at'].isoformat()
@@ -53,10 +57,11 @@ def get_stories():
         }), 500
 
 @stories_bp.route('/<story_id>', methods=['GET'])
+@jwt_required()
 def get_story(story_id):
     """Get a single user story by ID"""
     try:
-        if not ObjectId.is_valid(story_id):
+        if not story_id:
             return jsonify({
                 'success': False,
                 'error': 'Invalid story ID'
@@ -64,7 +69,7 @@ def get_story(story_id):
         
         db = get_db()
         collection = db['stories']
-        story = collection.find_one({'_id': ObjectId(story_id)})
+        story = collection.find_one({'storyId': story_id})
         
         if not story:
             return jsonify({
@@ -72,7 +77,7 @@ def get_story(story_id):
                 'error': 'Story not found'
             }), 404
         
-        object_id_to_str(story)
+        convert_objectid_to_str(story)
         # Convert datetime objects to ISO format strings
         if 'created_at' in story and isinstance(story['created_at'], datetime):
             story['created_at'] = story['created_at'].isoformat()
@@ -90,6 +95,7 @@ def get_story(story_id):
         }), 500
 
 @stories_bp.route('/', methods=['POST'], strict_slashes=False)
+@jwt_required()
 def create_story():
     """Create a new user story"""
     try:
@@ -118,6 +124,8 @@ def create_story():
             'story_points': data.get('story_points'),
             'business_value': data.get('business_value'),
             'projectId': data.get('projectId'),
+            'storyId': str(uuid.uuid4()),
+            'status': data.get('status', 'draft'),
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
         }
@@ -127,9 +135,9 @@ def create_story():
         result = collection.insert_one(story_doc)
         
         # Retrieve the created story
-        created_story = collection.find_one({'_id': result.inserted_id})
-        object_id_to_str(created_story)
+        created_story = collection.find_one({'storyId': story_doc['storyId']})
         
+        convert_objectid_to_str(created_story)
         # Convert datetime objects to ISO format strings
         if 'created_at' in created_story and isinstance(created_story['created_at'], datetime):
             created_story['created_at'] = created_story['created_at'].isoformat()
@@ -149,10 +157,11 @@ def create_story():
         }), 500
 
 @stories_bp.route('/<story_id>', methods=['PUT'])
+@jwt_required()
 def update_story(story_id):
     """Update an existing user story"""
     try:
-        if not ObjectId.is_valid(story_id):
+        if not story_id:
             return jsonify({
                 'success': False,
                 'error': 'Invalid story ID'
@@ -160,7 +169,7 @@ def update_story(story_id):
         
         db = get_db()
         collection = db['stories']
-        story = collection.find_one({'_id': ObjectId(story_id)})
+        story = collection.find_one({'storyId': story_id})
         
         if not story:
             return jsonify({
@@ -203,17 +212,27 @@ def update_story(story_id):
             update_doc['business_value'] = data['business_value']
         if 'projectId' in data:
             update_doc['projectId'] = data['projectId']
+        if 'status' in data:
+            # Validate status value
+            valid_statuses = ['draft', 'groomed', 'sprint-ready']
+            if data['status'] in valid_statuses:
+                update_doc['status'] = data['status']
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'
+                }), 400
         
         # Update the story
         collection.update_one(
-            {'_id': ObjectId(story_id)},
+            {'storyId': story_id},
             {'$set': update_doc}
         )
         
         # Retrieve updated story
-        updated_story = collection.find_one({'_id': ObjectId(story_id)})
-        object_id_to_str(updated_story)
+        updated_story = collection.find_one({'storyId': story_id})
         
+        convert_objectid_to_str(updated_story)
         # Convert datetime objects to ISO format strings
         if 'created_at' in updated_story and isinstance(updated_story['created_at'], datetime):
             updated_story['created_at'] = updated_story['created_at'].isoformat()
@@ -233,10 +252,11 @@ def update_story(story_id):
         }), 500
 
 @stories_bp.route('/<story_id>', methods=['DELETE'])
+@jwt_required()
 def delete_story(story_id):
     """Delete a user story"""
     try:
-        if not ObjectId.is_valid(story_id):
+        if not story_id:
             return jsonify({
                 'success': False,
                 'error': 'Invalid story ID'
@@ -244,7 +264,7 @@ def delete_story(story_id):
         
         db = get_db()
         collection = db['stories']
-        result = collection.delete_one({'_id': ObjectId(story_id)})
+        result = collection.delete_one({'storyId': story_id})
         
         if result.deleted_count == 0:
             return jsonify({
