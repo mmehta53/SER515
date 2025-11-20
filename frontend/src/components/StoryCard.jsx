@@ -14,7 +14,7 @@ const StoryCard = ({ story, onEdit, onDelete }) => {
   return (
     <div className="story-card">
       <div className="story-card-header">
-        <div className="story-id">Story #{story.id}</div>
+        <div className="story-id">Story #{story.storyId || story.id}</div>
         <div className="story-actions">
           <button 
             className="btn-icon" 
@@ -26,7 +26,7 @@ const StoryCard = ({ story, onEdit, onDelete }) => {
           </button>
           <button 
             className="btn-icon btn-danger" 
-            onClick={() => onDelete(story.id)}
+            onClick={() => onDelete(story.storyId || story.id)}
             title="Delete story"
             aria-label="Delete story"
           >
