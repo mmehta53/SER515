@@ -13,6 +13,8 @@ const StoryList = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingStory, setEditingStory] = useState(null);
   const [projectId, setProjectId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [storyToDelete, setStoryToDelete] = useState(null);
   const [formData, setFormData] = useState({
     role: '',
     goal: '',
@@ -107,23 +109,42 @@ const StoryList = () => {
     }
   };
 
-  const handleDelete = async (storyId) => {
-    if (!window.confirm('Are you sure you want to delete this user story?')) {
-      return;
-    }
-
+  const confirmDelete = async () => {
+    if (!storyToDelete) return;
     try {
-      await storyAPI.deleteStory(storyId);
+      await storyAPI.deleteStory(storyToDelete);
       loadStories(projectId);
     } catch (err) {
       setError(err.message || 'Failed to delete story');
-      alert(`Error: ${err.message}`);
+    } finally {
+      setShowDeleteConfirm(false);
+      setStoryToDelete(null);
     }
+  };
+
+  const handleDelete = (storyId) => {
+    setStoryToDelete(storyId);
+    setShowDeleteConfirm(true);
   };
 
   const handleEdit = (story) => {
     setEditingStory(story);
+    // Pre-fill the form data with the story being edited
+    setFormData({
+      id: story.storyId || story.id, // Keep track of id for update
+      role: story.role || '',
+      goal: story.goal || '',
+      description: story.description || '',
+      acceptance_criteria: story.acceptance_criteria || '',
+      story_points: story.story_points || '',
+      business_value: story.business_value || '',
+    });
     setShowForm(true);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setStoryToDelete(null);
   };
 
   const handleCancel = () => {
@@ -149,7 +170,7 @@ const StoryList = () => {
         <div className="form-preview-layout">
           <div className="form-section">
             <StoryForm
-              story={editingStory}
+              storyData={formData}
               onSubmit={editingStory ? handleUpdate : handleCreate}
               onCancel={handleCancel}
               onFormDataChange={handleFormDataChange}
@@ -195,9 +216,23 @@ const StoryList = () => {
           ))}
         </div>
       )}
+
+      {showDeleteConfirm && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this user story? This action cannot be undone.</p>
+            <div className="popup-actions">
+              <button onClick={confirmDelete} className="btn-danger">
+                Delete
+              </button>
+              <button onClick={cancelDelete} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default StoryList;
-
