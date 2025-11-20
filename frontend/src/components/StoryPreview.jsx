@@ -10,11 +10,6 @@ const StoryPreview = ({ formData }) => {
     ));
   };
 
-  const getPriorityLabel = () => {
-    // This can be enhanced if priority field is added
-    return 'Medium';
-  };
-
   return (
     <div className="story-preview-container">
       <div className="story-preview-header">
@@ -57,11 +52,6 @@ const StoryPreview = ({ formData }) => {
                   <span className="detail-value">{business_value}</span>
                 </div>
               )}
-              
-              <div className="preview-detail-item">
-                <span className="detail-label">Priority:</span>
-                <span className="detail-tag priority-medium">{getPriorityLabel()}</span>
-              </div>
             </div>
 
             {acceptance_criteria && (

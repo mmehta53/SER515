@@ -5,9 +5,10 @@ import StoryForm from './StoryForm';
 import StoryPreview from './StoryPreview';
 import './StoryList.css';
 
-const StoryBuilder = () => {
+const StoryBuilder = ({ onNavigate }) => {
   const [projectId, setProjectId] = useState(null);
   const [error, setError] = useState(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [formData, setFormData] = useState({
     role: '',
     goal: '',
@@ -48,7 +49,7 @@ const StoryBuilder = () => {
         business_value: '',
       });
       
-      alert('Story created successfully! Check the Backlog section to view it.');
+      setShowSuccessPopup(true);
     } catch (err) {
       setError(err.message || 'Failed to create story');
       alert(`Error: ${err.message}`);
@@ -68,6 +69,11 @@ const StoryBuilder = () => {
 
   const handleFormDataChange = (data) => {
     setFormData(data);
+  };
+
+  const handleClosePopup = () => {
+    setShowSuccessPopup(false);
+    onNavigate('backlog');
   };
 
   if (!projectId) {
@@ -96,7 +102,7 @@ const StoryBuilder = () => {
       <div className="form-preview-layout">
         <div className="form-section">
           <StoryForm
-            story={null}
+            storyData={formData}
             onSubmit={handleCreate}
             onCancel={handleCancel}
             onFormDataChange={handleFormDataChange}
@@ -106,9 +112,19 @@ const StoryBuilder = () => {
           <StoryPreview formData={formData} />
         </div>
       </div>
+
+      {showSuccessPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h2>Success!</h2>
+            <p>User story created successfully.</p>
+            <p>You will now be redirected to the backlog.</p>
+            <button onClick={handleClosePopup} className="btn-primary">OK</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default StoryBuilder;
-

@@ -126,7 +126,7 @@ function Project() {
                     {/* Story Builder Page */}
                     {activePage === 'story-builder' && (
                         <div className="page-content story-builder-content">
-                            <StoryBuilder />
+                            <StoryBuilder onNavigate={handleNavigation} />
                         </div>
                     )}
 

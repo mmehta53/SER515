@@ -1,74 +1,50 @@
 import { useState, useEffect } from 'react';
 import './StoryForm.css';
 
-const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
-  const [formData, setFormData] = useState({
-    role: '',
-    goal: '',
-    description: '',
-    acceptance_criteria: '',
-    story_points: '',
-    business_value: '',
-  });
-
+const StoryForm = ({ storyData, onSubmit, onCancel, onFormDataChange }) => {
   const [errors, setErrors] = useState({});
 
+  // When the form is for editing, clear any previous validation errors.
   useEffect(() => {
-    if (story) {
-      const initialData = {
-        role: story.role || '',
-        goal: story.goal || '',
-        description: story.description || '',
-        acceptance_criteria: story.acceptance_criteria || '',
-        story_points: story.story_points || '',
-        business_value: story.business_value || '',
-      };
-      setFormData(initialData);
-      // Notify parent of initial data
-      if (onFormDataChange) {
-        onFormDataChange(initialData);
-      }
-    }
-  }, [story, onFormDataChange]);
+    setErrors({});
+  }, [storyData.role, storyData.goal]); // Reset errors if the core story changes
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updatedData = {
-      ...formData,
-      [name]: value
-    };
-    setFormData(updatedData);
-    
+
     // Notify parent of data changes for live preview
     if (onFormDataChange) {
-      onFormDataChange(updatedData);
+      onFormDataChange({
+        ...storyData,
+        [name]: value,
+      });
     }
-    
+
     // Clear error for this field
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: '',
       }));
     }
   };
 
   const validate = () => {
     const newErrors = {};
-    
-    if (!formData.role.trim()) {
+
+    if (!storyData.role.trim()) {
       newErrors.role = 'Role is required';
     }
-    if (!formData.goal.trim()) {
+    if (!storyData.goal.trim()) {
       newErrors.goal = 'Goal is required';
     }
-    if (!formData.acceptance_criteria.trim()) {
+    if (!storyData.acceptance_criteria.trim()) {
       newErrors.acceptance_criteria = 'Acceptance criteria is required';
     }
-    if (formData.story_points && (isNaN(formData.story_points) || formData.story_points < 0)) {
+    if (storyData.story_points && (isNaN(storyData.story_points) || storyData.story_points < 0)) {
       newErrors.story_points = 'Story points must be a positive number';
     }
-    if (formData.business_value && (isNaN(formData.business_value) || formData.business_value < 0)) {
+    if (storyData.business_value && (isNaN(storyData.business_value) || storyData.business_value < 0)) {
       newErrors.business_value = 'Business value must be a positive number';
     }
 
@@ -78,18 +54,18 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
 
     const submitData = {
-      role: formData.role.trim(),
-      goal: formData.goal.trim(),
-      description: formData.description.trim(),
-      acceptance_criteria: formData.acceptance_criteria.trim(),
-      story_points: formData.story_points ? parseInt(formData.story_points) : null,
-      business_value: formData.business_value ? parseInt(formData.business_value) : null,
+      role: storyData.role.trim(),
+      goal: storyData.goal.trim(),
+      description: storyData.description.trim(),
+      acceptance_criteria: storyData.acceptance_criteria.trim(),
+      story_points: storyData.story_points ? parseInt(storyData.story_points, 10) : null,
+      business_value: storyData.business_value ? parseInt(storyData.business_value, 10) : null,
     };
 
     onSubmit(submitData);
@@ -97,8 +73,8 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
 
   return (
     <div className="story-form-container">
-      <form className="story-form" onSubmit={handleSubmit}>
-        <h2>{story ? 'Edit User Story' : 'Create New User Story'}</h2>
+      <form className="story-form" onSubmit={handleSubmit} noValidate>
+        <h2>{storyData.id ? 'Edit User Story' : 'Create New User Story'}</h2>
         
         <div className="form-group">
           <label htmlFor="role">
@@ -108,9 +84,9 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
             type="text"
             id="role"
             name="role"
-            value={formData.role}
+            value={storyData.role}
             onChange={handleChange}
-            placeholder="e.g., As a Pig"
+            placeholder="e.g., Pig"
             className={errors.role ? 'error' : ''}
           />
           {errors.role && <span className="error-message">{errors.role}</span>}
@@ -123,7 +99,7 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
           <textarea
             id="goal"
             name="goal"
-            value={formData.goal}
+            value={storyData.goal}
             onChange={handleChange}
             placeholder="e.g., I want to create detailed user stories"
             rows="3"
@@ -137,7 +113,7 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
           <textarea
             id="description"
             name="description"
-            value={formData.description}
+            value={storyData.description}
             onChange={handleChange}
             placeholder="Provide additional context or details about the story"
             rows="4"
@@ -151,7 +127,7 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
           <textarea
             id="acceptance_criteria"
             name="acceptance_criteria"
-            value={formData.acceptance_criteria}
+            value={storyData.acceptance_criteria}
             onChange={handleChange}
             placeholder="List the acceptance criteria (one per line or bullet points)"
             rows="5"
@@ -169,7 +145,7 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
               type="number"
               id="story_points"
               name="story_points"
-              value={formData.story_points}
+              value={storyData.story_points}
               onChange={handleChange}
               placeholder="e.g., 5"
               min="0"
@@ -186,7 +162,7 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
               type="number"
               id="business_value"
               name="business_value"
-              value={formData.business_value}
+              value={storyData.business_value}
               onChange={handleChange}
               placeholder="e.g., 8"
               min="0"
@@ -200,7 +176,7 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
 
         <div className="form-actions">
           <button type="submit" className="btn-primary">
-            {story ? 'Update Story' : 'Create Story'}
+            {storyData.id ? 'Update Story' : 'Create Story'}
           </button>
           {onCancel && (
             <button type="button" className="btn-secondary" onClick={onCancel}>
@@ -214,4 +190,3 @@ const StoryForm = ({ story, onSubmit, onCancel, onFormDataChange }) => {
 };
 
 export default StoryForm;
-
