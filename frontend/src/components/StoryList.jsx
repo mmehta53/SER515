@@ -89,7 +89,7 @@ const StoryList = () => {
     try {
       // Preserve projectId when updating
       const storyWithProject = { ...storyData, projectId };
-      await storyAPI.updateStory(editingStory.id, storyWithProject);
+      await storyAPI.updateStory(editingStory.storyId || editingStory.id, storyWithProject);
       setEditingStory(null);
       setShowForm(false);
       setFormData({
@@ -187,7 +187,7 @@ const StoryList = () => {
         <div className="stories-grid">
           {stories.map((story) => (
             <StoryCard
-              key={story.id}
+            key={story.storyId || story.id}
               story={story}
               onEdit={handleEdit}
               onDelete={handleDelete}
