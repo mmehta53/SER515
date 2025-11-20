@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5001/api/stories/';
+const API_BASE_URL = 'http://localhost:5000/api/stories/';
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -33,7 +33,7 @@ export const storyAPI = {
       return data.stories;
     } catch (error) {
       if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
-        throw new Error('Cannot connect to server. Make sure the Flask backend is running on http://localhost:5001');
+        throw new Error('Cannot connect to server. Make sure the Flask backend is running on http://localhost:5000');
       }
       throw error;
     }
@@ -75,7 +75,7 @@ export const storyAPI = {
       return data.story;
     } catch (error) {
       if (error.message.includes('fetch')) {
-        throw new Error('Cannot connect to server. Make sure the Flask backend is running on http://localhost:5001');
+        throw new Error('Cannot connect to server. Make sure the Flask backend is running on http://localhost:5000');
       }
       throw error;
     }
