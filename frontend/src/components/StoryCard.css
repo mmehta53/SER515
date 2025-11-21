@@ -23,6 +23,12 @@
   border-bottom: 2px solid #f0f0f0;
 }
 
+.story-card.dragging {
+  opacity: 0.5;
+  border: 2px dashed #007bff;
+  transform: scale(1.02);
+}
+
 .story-id {
   font-weight: 700;
   color: #007bff;

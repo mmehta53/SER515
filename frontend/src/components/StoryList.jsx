@@ -15,6 +15,8 @@ const StoryList = ({ onShowIdea }) => {
   const [projectId, setProjectId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [storyToDelete, setStoryToDelete] = useState(null);
+  const [draggedStoryId, setDraggedStoryId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     role: '',
     goal: '',
@@ -109,6 +111,44 @@ const StoryList = ({ onShowIdea }) => {
     }
   };
 
+  const onDragStart = (e, story) => {
+    const id = story.storyId || story.id;
+    e.dataTransfer.setData('text/plain', id);
+    setDraggedStoryId(id);
+  };
+
+  const onDragEnd = () => {
+    setDraggedStoryId(null);
+  };
+
+  const onColumnDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const onColumnDrop = async (e, targetStatus) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    if (!id) return;
+
+    const storyToMove = stories.find(s => (s.storyId || s.id) === id);
+    if (!storyToMove || storyToMove.status === targetStatus) {
+      setDraggedStoryId(null);
+      return;
+    }
+
+    // Optimistic UI update
+    setStories(prev => prev.map(s => (s.storyId || s.id) === id ? { ...s, status: targetStatus } : s));
+    setDraggedStoryId(null);
+
+    try {
+      await storyAPI.updateStory(id, { ...storyToMove, status: targetStatus });
+      loadStories(projectId); // Re-sync with backend
+    } catch (err) {
+      setError(err.message || 'Failed to update story status');
+      loadStories(projectId); // Revert on failure
+    }
+  };
+
   const handleAddComment = async (storyId, text) => {
     if (!text || !text.trim()) return;
 
@@ -181,6 +221,18 @@ const StoryList = ({ onShowIdea }) => {
     setFormData(data);
   };
 
+  const filteredStories = stories.filter(story => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    const storyId = (story.storyId || story.id)?.toString().toLowerCase() || '';
+    return (
+      story.role?.toLowerCase().includes(term) ||
+      story.goal?.toLowerCase().includes(term) ||
+      story.description?.toLowerCase().includes(term) ||
+      storyId.includes(term)
+    );
+  });
+
   if (showForm) {
     return (
       <div className="story-list-container">
@@ -205,6 +257,15 @@ const StoryList = ({ onShowIdea }) => {
     <div className="story-list-container">
       <div className="story-list-header">
         <h1>User Stories Backlog</h1>
+        <div className="story-list-controls">
+          <input
+            type="text"
+            placeholder="Search by ID, role, goal..."
+            className="search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
       {error && (
@@ -216,22 +277,43 @@ const StoryList = ({ onShowIdea }) => {
 
       {loading ? (
         <div className="loading">Loading stories...</div>
-      ) : stories.length === 0 ? (
+      ) : stories.length === 0 && !searchTerm ? (
         <div className="empty-state">
           <h2>No user stories yet</h2>
           <p>Go to Story Builder to create your first user story!</p>
         </div>
       ) : (
-        <div className="stories-grid">
-          {stories.map((story) => (
-            <StoryCard
-            key={story.storyId || story.id}
-              story={story}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onShowIdea={onShowIdea}
-              onAddComment={handleAddComment}
-            />
+        <div className="stories-columns">
+          {['draft', 'groomed', 'sprint-ready'].map((status) => (
+            <div
+              key={status}
+              className="story-column"
+              onDragOver={onColumnDragOver}
+              onDrop={(e) => onColumnDrop(e, status)}
+            >
+              <h3 className="column-title">{status.charAt(0).toUpperCase() + status.slice(1)}</h3>
+              <div className="stories-grid">
+                {filteredStories.filter(s => (s.status || 'draft') === status).map((story) => (
+                  <StoryCard
+                    key={story.storyId || story.id}
+                    story={story}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onShowIdea={onShowIdea}
+                    onAddComment={handleAddComment}
+                    draggable="true"
+                    onDragStart={(e) => onDragStart(e, story)}
+                    onDragEnd={onDragEnd}
+                    isDragging={draggedStoryId === (story.storyId || story.id)}
+                  />
+                ))}
+              </div>
+              {filteredStories.filter(s => (s.status || 'draft') === status).length === 0 && (
+                <div className="empty-column-message">
+                  {searchTerm ? 'No matching stories' : `No stories in ${status}`}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -253,5 +335,6 @@ const StoryList = ({ onShowIdea }) => {
     </div>
   );
 };
+
 
 export default StoryList;
