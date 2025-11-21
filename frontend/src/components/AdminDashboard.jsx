@@ -6,6 +6,8 @@ import "./AdminDashboard.css";
 export default function AdminDashboard() {
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrg, setSelectedOrg] = useState(null);
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
+
   const [newUser, setNewUser] = useState({
     email: "",
     firstName: "",
@@ -13,10 +15,13 @@ export default function AdminDashboard() {
     role: "pig",
     password: "",
   });
+
   const [message, setMessage] = useState("");
+  const [showMessageCard, setShowMessageCard] = useState(false);
+
   const navigate = useNavigate();
 
-  // ✅ Check for admin login
+  // Check for admin login
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user || user.role !== "admin") {
@@ -26,7 +31,7 @@ export default function AdminDashboard() {
     fetchOrganizations();
   }, [navigate]);
 
-  // ✅ Fetch organizations
+  // Fetch organizations
   const fetchOrganizations = async () => {
     try {
       const response = await api.get("/admin/organizations");
@@ -38,7 +43,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Fetch users for selected org
+  // Fetch users for selected org
   const fetchUsers = async (orgId) => {
     try {
       const response = await api.get(`/admin/organizations/${orgId}/users`);
@@ -49,22 +54,28 @@ export default function AdminDashboard() {
         name: org?.name || "Organization",
         users: users,
       });
+      setShowAddUserForm(false);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
 
-  // ✅ Add user (auto-include orgId)
+  // Add user
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        ...newUser,
-        orgId: selectedOrg.id,
-      };
+      const payload = { ...newUser, orgId: selectedOrg.id };
       await api.post(`/auth/register-user`, payload);
-      setMessage("✅ User added successfully!");
+
+      setMessage("User added successfully!");
+      setShowMessageCard(true);
+
+      // Auto-hide after 3 seconds
+      setTimeout(() => setShowMessageCard(false), 3000);
+
       fetchUsers(selectedOrg.id);
+      setShowAddUserForm(false);
+
       setNewUser({
         email: "",
         firstName: "",
@@ -73,12 +84,14 @@ export default function AdminDashboard() {
         password: "",
       });
     } catch (error) {
-      setMessage("❌ Error adding user. Please try again.");
+      setMessage("Error adding user. Please try again.");
+      setShowMessageCard(true);
+      setTimeout(() => setShowMessageCard(false), 3000);
       console.error("Add user error:", error);
     }
   };
 
-  // ✅ Logout
+  // Logout
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
@@ -93,6 +106,13 @@ export default function AdminDashboard() {
           Logout
         </button>
       </header>
+
+      {/* Success / Error Message Card */}
+      {showMessageCard && (
+        <div className="message-card">
+          {message}
+        </div>
+      )}
 
       {/* Organizations Section */}
       <section className="organizations-section">
@@ -115,41 +135,11 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      {/* Users Section */}
-      {selectedOrg && (
-        <section className="user-section">
-          <h2>{selectedOrg.name} - Users</h2>
-
-          {selectedOrg.users && selectedOrg.users.length > 0 ? (
-            <table className="user-table">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedOrg.users.map((u) => (
-                  <tr key={u.userId}>
-                    <td>{u.email}</td>
-                    <td>
-                      {u.firstName} {u.lastName}
-                    </td>
-                    <td>{u.role}</td>
-                    <td>{u.isActive ? "Active" : "Inactive"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No users found for this organization.</p>
-          )}
-
-          {/* Add User Form */}
-          <form onSubmit={handleAddUser} className="add-user-form">
-            <h3>Add New User</h3>
+      {/* Add User Form ABOVE the user table */}
+      {selectedOrg && showAddUserForm && (
+        <section className="add-user-form">
+          <h3>Add New User</h3>
+          <form onSubmit={handleAddUser}>
             <div className="form-group">
               <label>Email</label>
               <input
@@ -218,7 +208,49 @@ export default function AdminDashboard() {
         </section>
       )}
 
-      {message && <p className="status-msg">{message}</p>}
+      {/* Users Table */}
+      {selectedOrg && (
+        <section className="user-section">
+          <div className="user-section-header">
+            <h2>{selectedOrg.name} - Users</h2>
+
+            {/* NEW USER BUTTON */}
+            <button
+              className="new-user-btn"
+              onClick={() => setShowAddUserForm(!showAddUserForm)}
+            >
+              + Add New User
+            </button>
+          </div>
+
+          {selectedOrg.users && selectedOrg.users.length > 0 ? (
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedOrg.users.map((u) => (
+                  <tr key={u.userId}>
+                    <td>{u.email}</td>
+                    <td>
+                      {u.firstName} {u.lastName}
+                    </td>
+                    <td>{u.role}</td>
+                    <td>{u.isActive ? "Active" : "Inactive"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No users found for this organization.</p>
+          )}
+        </section>
+      )}
     </div>
   );
 }
