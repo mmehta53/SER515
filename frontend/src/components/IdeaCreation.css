@@ -332,3 +332,20 @@
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
 }
+
+.idea-card.locked {
+  cursor: not-allowed;
+  background-color: #f3f4f6; /* A light grey to indicate it's locked */
+  opacity: 0.8;
+}
+
+.idea-card.highlight {
+  transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7);
+  transform: scale(1.02);
+}
+
+@keyframes highlight-fade {
+  from { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7); transform: scale(1.02); }
+  to { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); transform: scale(1); }
+}

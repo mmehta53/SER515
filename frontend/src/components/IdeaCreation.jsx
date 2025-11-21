@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../utils/api";
 import './IdeaCreation.css';
- 
-const IdeaCreation = ({ project }) => {
+
+const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighlightDone }) => {
   const [ideas, setIdeas] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
@@ -19,6 +19,7 @@ const IdeaCreation = ({ project }) => {
   const [commentIdeaId, setCommentIdeaId] = useState(null);
   const [editingIdeaId, setEditingIdeaId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', description: '', tags: '' });
+  const ideaRefs = useRef({});
 
  useEffect(() => {
     const projectId = project?.projId;
@@ -27,6 +28,18 @@ const IdeaCreation = ({ project }) => {
       loadIdeas(projectId);
     }
   }, [project]); // Re-run if project prop changes
+
+  useEffect(() => {
+    if (highlightIdeaId && ideaRefs.current[highlightIdeaId]) {
+      const element = ideaRefs.current[highlightIdeaId];
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight');
+      setTimeout(() => {
+        element.classList.remove('highlight');
+        onHighlightDone();
+      }, 2500);
+    }
+  }, [highlightIdeaId, onHighlightDone, ideas]);
 
   const normalizeId = (idea) => idea.ideaId || idea.id || idea._id || "";
   const getCurrentUserId = () => {
@@ -252,9 +265,25 @@ const IdeaCreation = ({ project }) => {
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain');
     if (!id) return;
+
+    // Prevent dropping into 'moved' column
+    if (targetStatus === 'moved') {
+      setError("Ideas can only be moved here by creating a user story.");
+      setDraggedIdeaId(null);
+      return;
+    }
+
     const prevState = ideas;
     const dragged = prevState.find(i => (i._localId || i.ideaId || i.id || i._id) === id);
     if (!dragged) return setDraggedIdeaId(null);
+
+    // Prevent dragging out of 'moved' column
+    if (dragged.status === 'moved') {
+      setError("A 'moved' idea cannot change its status.");
+      setDraggedIdeaId(null);
+      return;
+    }
+
     // Optimistic UI update
     setIdeas(prev => {
       const updated = { ...dragged, status: targetStatus };
@@ -374,7 +403,15 @@ const IdeaCreation = ({ project }) => {
                   const isEditing = editingIdeaId === id;
                   const isCreator = idea.createdBy === getCurrentUserId();
                   return (
-                    <li key={id} className={`idea-card ${draggedIdeaId === id ? 'dragging' : ''}`} draggable onDragStart={(e) => onDragStart(e, idea)} onDragEnd={onDragEnd}>
+                    <li 
+                      key={id} 
+                      id={id}
+                      ref={el => ideaRefs.current[id] = el}
+                      className={`idea-card ${draggedIdeaId === id ? 'dragging' : ''} ${idea.status === 'moved' ? 'locked' : ''}`} 
+                      draggable={idea.status !== 'moved'} 
+                      onDragStart={(e) => idea.status !== 'moved' && onDragStart(e, idea)} 
+                      onDragEnd={onDragEnd}
+                    >
                       <div className="idea-title" style={{fontWeight:700}}>{idea.title}</div>
                       <div className="idea-creator">by {idea.createdByName || (idea.createdBy || '').slice(0,8)}</div>
 
@@ -397,6 +434,9 @@ const IdeaCreation = ({ project }) => {
                             <button className={`downvote ${idea.currentUserVote==='downvote'?'disabled':''}`} onClick={() => handleVoteClick(idea, 'downvote')} disabled={idea.currentUserVote==='downvote'}>▼ {idea.downvotes || 0}</button>
                             <button className="comment-btn" onClick={() => openCommentBox(id)}>💬 Comment</button>
                             {isCreator && <button className="comment-btn" onClick={() => startEditing(idea)}>✏️ Edit</button>}
+                            {col === 'reviewed' && (
+                              <button className="move-to-story-btn" onClick={() => onMoveToStoryBuilder(idea)}>🚀 Move to Story Builder</button>
+                            )}
                             {/* <button className="comment-btn" onClick={() => startEditing(idea)}>✏️ Edit</button> */}
                           </div>
                         </>
