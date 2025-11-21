@@ -113,5 +113,31 @@ export const storyAPI = {
     }
     return data;
   },
-};
 
+  /**
+   * Add a comment to a user story
+   */
+  addComment: async (storyId, text) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${storyId}/comment`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ text }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to add comment`);
+      }
+
+      const data = await response.json();
+      return data; // The backend returns the full updated story object
+    } catch (error) {
+      if (error.message.includes('fetch')) {
+        throw new Error('Cannot connect to server. Make sure the Flask backend is running on http://localhost:5000');
+      }
+      throw error;
+    }
+  },
+};

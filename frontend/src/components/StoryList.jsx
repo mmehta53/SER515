@@ -6,7 +6,7 @@ import StoryForm from './StoryForm';
 import StoryPreview from './StoryPreview';
 import './StoryList.css';
 
-const StoryList = () => {
+const StoryList = ({ onShowIdea }) => {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -105,6 +105,23 @@ const StoryList = () => {
       loadStories(projectId);
     } catch (err) {
       setError(err.message || 'Failed to update story');
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleAddComment = async (storyId, text) => {
+    if (!text || !text.trim()) return;
+
+    try {
+      const updatedStory = await storyAPI.addComment(storyId, text);
+      setStories(prevStories =>
+        prevStories.map(story =>
+          (story.storyId || story.id) === storyId ? updatedStory : story
+        )
+      );
+    } catch (err) {
+      setError(err.message || 'Failed to add comment');
+      console.error('Error adding comment:', err);
       alert(`Error: ${err.message}`);
     }
   };
@@ -212,6 +229,8 @@ const StoryList = () => {
               story={story}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onShowIdea={onShowIdea}
+              onAddComment={handleAddComment}
             />
           ))}
         </div>

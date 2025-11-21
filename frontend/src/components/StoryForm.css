@@ -49,6 +49,7 @@
   font-family: inherit;
   transition: all 0.2s ease;
   box-sizing: border-box;
+  resize: none;
 }
 
 .form-group input:focus,
@@ -119,4 +120,3 @@
 .btn-secondary:hover {
   background-color: #5a6268;
 }
-
