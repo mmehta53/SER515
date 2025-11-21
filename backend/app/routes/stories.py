@@ -1,5 +1,5 @@
-from flask_jwt_extended import jwt_required
-from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, request, jsonify, g
 from mongoengine.connection import get_db
 from datetime import datetime
 from bson import ObjectId
@@ -127,7 +127,9 @@ def create_story():
             'storyId': str(uuid.uuid4()),
             'status': data.get('status', 'draft'),
             'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
+            'updated_at': datetime.utcnow(),
+            'comments': [], # Initialize comments array
+            'ideaId': data.get('ideaId') # Link to the idea
         }
         
         db = get_db()
@@ -135,6 +137,20 @@ def create_story():
         result = collection.insert_one(story_doc)
         
         # Retrieve the created story
+        # If an ideaId is provided, update the idea's status to 'moved'
+        if story_doc.get('ideaId'):
+            ideas_collection = db['ideas']
+            ideas_collection.update_one(
+                {'ideaId': story_doc['ideaId']},
+                {'$set': {'status': 'moved'}}
+            )
+        
+        # Increment totalStories count in the project
+        projects_collection = db['projects']
+        projects_collection.update_one(
+            {'projId': story_doc['projectId']},
+            {'$inc': {'totalStories': 1}}
+        )
         created_story = collection.find_one({'storyId': story_doc['storyId']})
         
         convert_objectid_to_str(created_story)
@@ -155,6 +171,52 @@ def create_story():
             'success': False,
             'error': str(e)
         }), 500
+
+@stories_bp.route('/<story_id>/comment', methods=['POST'])
+@jwt_required()
+def add_comment_to_story(story_id):
+    """Add a comment to a user story"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data or not data['text'].strip():
+            return jsonify({'success': False, 'error': 'Comment text is required'}), 400
+
+        db = get_db()
+        collection = db['stories']
+        story = collection.find_one({'storyId': story_id})
+
+        if not story:
+            return jsonify({'success': False, 'error': 'Story not found'}), 404
+
+        current_user_id = get_jwt_identity()
+        user = db['users'].find_one({'userId': current_user_id})
+        user_name = user.get('firstName', 'Anonymous') if user else 'Anonymous'
+
+        comment = {
+            'commentId': str(uuid.uuid4()),
+            'userId': current_user_id,
+            'userName': user_name,
+            'text': data['text'].strip(),
+            'created_at': datetime.utcnow()
+        }
+
+        collection.update_one(
+            {'storyId': story_id},
+            {'$push': {'comments': comment}}
+        )
+
+        # Retrieve updated story
+        updated_story = collection.find_one({'storyId': story_id})
+        convert_objectid_to_str(updated_story)
+        if 'created_at' in updated_story and isinstance(updated_story['created_at'], datetime):
+            updated_story['created_at'] = updated_story['created_at'].isoformat()
+        if 'updated_at' in updated_story and isinstance(updated_story['updated_at'], datetime):
+            updated_story['updated_at'] = updated_story['updated_at'].isoformat()
+
+        return jsonify(updated_story), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @stories_bp.route('/<story_id>', methods=['PUT'])
 @jwt_required()
@@ -264,13 +326,21 @@ def delete_story(story_id):
         
         db = get_db()
         collection = db['stories']
-        result = collection.delete_one({'storyId': story_id})
+        # Find and delete the story to get its projectId
+        deleted_story = collection.find_one_and_delete({'storyId': story_id})
         
-        if result.deleted_count == 0:
+        if not deleted_story:
             return jsonify({
                 'success': False,
                 'error': 'Story not found'
             }), 404
+        
+        # Decrement totalStories count in the project
+        projects_collection = db['projects']
+        projects_collection.update_one(
+            {'projId': deleted_story['projectId']},
+            {'$inc': {'totalStories': -1}}
+        )
         
         return jsonify({
             'success': True,
@@ -282,4 +352,3 @@ def delete_story(story_id):
             'success': False,
             'error': str(e)
         }), 500
-

@@ -11,6 +11,8 @@ function Project() {
     const location = useLocation();
     const [activePage, setActivePage] = useState('ideation');
     const [projectInfo, setProjectInfo] = useState(null);
+    const [ideaForStory, setIdeaForStory] = useState(null);
+    const [highlightIdeaId, setHighlightIdeaId] = useState(null);
     const [projId, setProjId] = useState(null);
 
     useEffect(() => {
@@ -40,6 +42,16 @@ function Project() {
 
     const handleNavigation = (page) => {
         setActivePage(page);
+    };
+
+    const handleMoveToStoryBuilder = (idea) => {
+        setIdeaForStory(idea);
+        setActivePage('story-builder');
+    };
+
+    const handleShowIdea = (ideaId) => {
+        setHighlightIdeaId(ideaId);
+        setActivePage('ideation');
     };
 
     const handleBackToDashboard = () => {
@@ -119,21 +131,26 @@ function Project() {
                     {/* Ideation Page */}
                     {activePage === 'ideation' && (
                         <div className="page-content">
-                            <IdeaCreation project={projectInfo} />
+                            <IdeaCreation 
+                                project={projectInfo} 
+                                onMoveToStoryBuilder={handleMoveToStoryBuilder}
+                                highlightIdeaId={highlightIdeaId}
+                                onHighlightDone={() => setHighlightIdeaId(null)}
+                            />
                         </div>
                     )}
 
                     {/* Story Builder Page */}
                     {activePage === 'story-builder' && (
                         <div className="page-content story-builder-content">
-                            <StoryBuilder onNavigate={handleNavigation} />
+                            <StoryBuilder onNavigate={handleNavigation} idea={ideaForStory} />
                         </div>
                     )}
 
                     {/* Backlog Page */}
                     {activePage === 'backlog' && (
                         <div className="page-content story-builder-content">
-                            <StoryList />
+                            <StoryList onShowIdea={handleShowIdea} />
                         </div>
                     )}
 
