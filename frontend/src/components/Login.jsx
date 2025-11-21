@@ -92,13 +92,6 @@ export default function Login() {
             Login
           </button>
         </form>
-
-        <p className="login-footer">
-          Don't have an account?{" "}
-          <a href="/register" className="signup-link">
-            Sign up
-          </a>
-        </p>
       </div>
     </div>
   );
