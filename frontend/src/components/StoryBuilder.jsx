@@ -7,6 +7,7 @@ import './StoryList.css';
 
 const StoryBuilder = ({ onNavigate, idea }) => {
   const [projectId, setProjectId] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,6 +27,7 @@ const StoryBuilder = ({ onNavigate, idea }) => {
     } else {
       setError('No project selected. Please select a project first.');
     }
+    setLoading(false);
 
     if (idea) {
       setFormData({
@@ -86,6 +88,10 @@ const StoryBuilder = ({ onNavigate, idea }) => {
     setShowSuccessPopup(false);
     onNavigate('backlog');
   };
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
 
   if (!projectId) {
     return (
