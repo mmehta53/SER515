@@ -295,9 +295,14 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     (async () => {
       try {
         await api.put(`/ideas/${encodeURIComponent(id)}`, { status: targetStatus });
+        // Clear any previous errors on success
+        if (error) {
+          setError("");
+        }
       } catch (err) {
         console.error('Failed to persist move', err);
         // revert to previous state on failure
+        setError("You are unauthorized to change the status of this idea. Only the creator can change it.");
         setIdeas(prevState);
       }
     })();
@@ -349,6 +354,13 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
         {showForm ? "Cancel" : "+ Add New Idea"}
       </button>
 
+      {/* General error message display */}
+      {error && (
+        <div className="error-banner">
+          <span>{error}</span>
+        </div>
+      )}
+
       {showForm && (
         <form onSubmit={handleSubmit} className="idea-form">
           <input
@@ -371,7 +383,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
             onChange={handleChange}
             placeholder="Tags (comma separated)"
           />
-          {error && <div className="error-message">{error}</div>}
           <button type="submit" className="submit-btn">Create Idea</button>
         </form>
       )}
