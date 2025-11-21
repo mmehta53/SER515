@@ -1,5 +1,5 @@
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify
 from mongoengine.connection import get_db
 from datetime import datetime
 from bson import ObjectId
