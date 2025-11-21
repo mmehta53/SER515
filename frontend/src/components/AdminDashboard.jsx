@@ -19,8 +19,6 @@ export default function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [showMessageCard, setShowMessageCard] = useState(false);
 
-  const [editingUser, setEditingUser] = useState(null);
-
   const navigate = useNavigate();
 
   // Check for admin login
@@ -71,6 +69,8 @@ export default function AdminDashboard() {
 
       setMessage("User added successfully!");
       setShowMessageCard(true);
+
+      // Auto-hide after 3 seconds
       setTimeout(() => setShowMessageCard(false), 3000);
 
       fetchUsers(selectedOrg.id);
@@ -91,51 +91,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Deactivate user
-  const deactivateUser = async (userId) => {
-    try {
-      await api.put(`/admin/users/${userId}/deactivate`);
-
-      setMessage("User deactivated successfully!");
-      setShowMessageCard(true);
-      setTimeout(() => setShowMessageCard(false), 3000);
-
-      fetchUsers(selectedOrg.id);
-    } catch (error) {
-      setMessage("Error deactivating user.");
-      setShowMessageCard(true);
-      setTimeout(() => setShowMessageCard(false), 3000);
-      console.error("Deactivate user error:", error);
-    }
-  };
-
-  // Save edited user
-  const handleEditUser = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        firstName: editingUser.firstName,
-        lastName: editingUser.lastName,
-        email: editingUser.email,
-        role: editingUser.role,
-      };
-
-      await api.put(`/admin/users/${editingUser.userId}`, payload);
-
-      setMessage("User updated successfully!");
-      setShowMessageCard(true);
-      setTimeout(() => setShowMessageCard(false), 3000);
-
-      setEditingUser(null);
-      fetchUsers(selectedOrg.id);
-    } catch (error) {
-      setMessage("Error updating user.");
-      setShowMessageCard(true);
-      setTimeout(() => setShowMessageCard(false), 3000);
-      console.error("Edit user error:", error);
-    }
-  };
-
   // Logout
   const handleLogout = () => {
     localStorage.clear();
@@ -152,10 +107,14 @@ export default function AdminDashboard() {
         </button>
       </header>
 
-      {/* Success / Error Message */}
-      {showMessageCard && <div className="message-card">{message}</div>}
+      {/* Success / Error Message Card */}
+      {showMessageCard && (
+        <div className="message-card">
+          {message}
+        </div>
+      )}
 
-      {/* Organizations */}
+      {/* Organizations Section */}
       <section className="organizations-section">
         <h2>Organizations</h2>
         <div className="org-list">
@@ -176,7 +135,7 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      {/* Add User Form */}
+      {/* Add User Form ABOVE the user table */}
       {selectedOrg && showAddUserForm && (
         <section className="add-user-form">
           <h3>Add New User</h3>
@@ -249,81 +208,13 @@ export default function AdminDashboard() {
         </section>
       )}
 
-      {/* Edit User Popup */}
-      {editingUser && (
-        <div className="edit-popup">
-          <div className="edit-popup-inner">
-            <h3>Edit User</h3>
-            <form onSubmit={handleEditUser}>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={editingUser.email}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, email: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>First Name</label>
-                <input
-                  type="text"
-                  value={editingUser.firstName}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, firstName: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  value={editingUser.lastName}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, lastName: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Role</label>
-                <select
-                  value={editingUser.role}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, role: e.target.value })
-                  }
-                >
-                  <option value="pig">Pig</option>
-                  <option value="chicken">Chicken</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <button type="submit" className="add-btn">Save Changes</button>
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => setEditingUser(null)}
-              >
-                Cancel
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Users Table */}
       {selectedOrg && (
         <section className="user-section">
           <div className="user-section-header">
             <h2>{selectedOrg.name} - Users</h2>
 
+            {/* NEW USER BUTTON */}
             <button
               className="new-user-btn"
               onClick={() => setShowAddUserForm(!showAddUserForm)}
@@ -340,7 +231,6 @@ export default function AdminDashboard() {
                   <th>Name</th>
                   <th>Role</th>
                   <th>Status</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -352,23 +242,6 @@ export default function AdminDashboard() {
                     </td>
                     <td>{u.role}</td>
                     <td>{u.isActive ? "Active" : "Inactive"}</td>
-                    <td>
-                      {u.isActive && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => setEditingUser(u)}
-                      >
-                        Edit
-                      </button>
-                    )}
-                    <button
-                      className="deactivate-btn"
-                      disabled={!u.isActive}
-                      onClick={() => deactivateUser(u.userId)}
-                    >
-                      {u.isActive ? "Deactivate" : "Deactivated"}
-                    </button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
