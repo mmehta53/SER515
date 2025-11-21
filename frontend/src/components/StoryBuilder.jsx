@@ -5,7 +5,7 @@ import StoryForm from './StoryForm';
 import StoryPreview from './StoryPreview';
 import './StoryList.css';
 
-const StoryBuilder = ({ onNavigate }) => {
+const StoryBuilder = ({ onNavigate, idea }) => {
   const [projectId, setProjectId] = useState(null);
   const [error, setError] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -26,7 +26,18 @@ const StoryBuilder = ({ onNavigate }) => {
     } else {
       setError('No project selected. Please select a project first.');
     }
-  }, []);
+
+    if (idea) {
+      setFormData({
+        role: '', // Role needs to be filled by the user
+        goal: idea.title || '',
+        description: idea.description || '',
+        acceptance_criteria: '', // To be filled by the user
+        story_points: '',
+        business_value: '',
+      });
+    }
+  }, [idea]);
 
   const handleCreate = async (storyData) => {
     if (!projectId) {
@@ -36,7 +47,7 @@ const StoryBuilder = ({ onNavigate }) => {
     
     try {
       // Add projectId to story data
-      const storyWithProject = { ...storyData, projectId };
+      const storyWithProject = { ...storyData, projectId, ideaId: idea?.ideaId };
       await storyAPI.createStory(storyWithProject);
       
       // Reset form after successful creation
@@ -88,9 +99,6 @@ const StoryBuilder = ({ onNavigate }) => {
 
   return (
     <div className="story-list-container">
-      <div className="story-list-header">
-        <h1>Create User Story</h1>
-      </div>
 
       {error && (
         <div className="error-banner">

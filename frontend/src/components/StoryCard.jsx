@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import './StoryCard.css';
 
-const StoryCard = ({ story, onEdit, onDelete }) => {
+const StoryCard = ({ story, onEdit, onDelete, onShowIdea, onAddComment }) => {
+  const [showComments, setShowComments] = useState(false);
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -12,7 +14,7 @@ const StoryCard = ({ story, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="story-card">
+    <div className={`story-card ${showComments ? 'comments-visible' : ''}`}>
       <div className="story-card-header">
         <div className="story-id">Story #{story.storyId || story.id}</div>
         <div className="story-actions">
@@ -73,10 +75,48 @@ const StoryCard = ({ story, onEdit, onDelete }) => {
         </div>
       </div>
 
+      <div className="story-comment-section">
+        <button className="comment-toggle-btn" onClick={() => setShowComments(!showComments)}>
+          💬 Comments ({story.comments?.length || 0})
+        </button>
+        {showComments && (
+          <div className="comments-area">
+            <div className="comments-list">
+              {(story.comments || []).length > 0 ? (
+                story.comments.map((c, idx) => (
+                  <div key={c.commentId || idx} className="comment-item">
+                    <div className="comment-header">
+                      <strong className="comment-author">{c.userName || 'Anon'}</strong>
+                      <span className="comment-date">{formatDate(c.created_at)}</span>
+                    </div>
+                    <p className="comment-text">{c.text}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="no-comments">No comments yet.</div>
+              )}
+            </div>
+            <form className="comment-form" onSubmit={(e) => { e.preventDefault(); onAddComment(story.storyId, e.target.elements.commentText.value); e.target.reset(); }}>
+              <textarea name="commentText" placeholder="Add a comment..." required rows="2"></textarea>
+              <button type="submit">Post</button>
+            </form>
+          </div>
+        )}
+      </div>
+
       <div className="story-card-footer">
         <span className="story-date">Created: {formatDate(story.created_at)}</span>
         {story.updated_at !== story.created_at && (
           <span className="story-date">Updated: {formatDate(story.updated_at)}</span>
+        )}
+        {story.ideaId && (
+          <button 
+            className="story-idea-link" 
+            onClick={() => onShowIdea(story.ideaId)}
+            title="Go to original idea"
+          >
+            🔗 From Idea
+          </button>
         )}
       </div>
     </div>
@@ -84,4 +124,3 @@ const StoryCard = ({ story, onEdit, onDelete }) => {
 };
 
 export default StoryCard;
-
