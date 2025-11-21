@@ -19,3 +19,11 @@ class Config:
     # CORS Settings
     CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']  # Add your frontend URL
     CORS_SUPPORTS_CREDENTIALS = True  # Required for cookies
+    
+    # Email Configuration
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@projectideation.com')
