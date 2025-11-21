@@ -138,10 +138,11 @@ def login():
 
     # Generate JWTs (access + refresh)
     access_token = create_access_token(
-        identity=str(user.userId), 
+        identity=str(user.userId),
         additional_claims={
             'role': user.role,
-            'orgId': str(user.orgId) if user.orgId else None
+            'orgId': str(user.orgId) if user.orgId else None,
+            'userId': str(user.userId)
         }
     )
     refresh_token = create_refresh_token(identity=str(user.userId))
@@ -152,6 +153,7 @@ def login():
             'email': user.email, 
             'role': user.role,
             'orgId': str(user.orgId) if user.orgId else None,
+            'userId': str(user.userId),
             'token': access_token  # Include token in response for frontend
         }
     })

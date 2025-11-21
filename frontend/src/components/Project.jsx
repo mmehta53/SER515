@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import './Project.css';
+import IdeaCreation from './IdeaCreation'; // Import the IdeaCreation component
+import StoryBuilder from './StoryBuilder'; // Import the StoryBuilder component
+import StoryList from './StoryList'; // Import the StoryList component
 
 function Project() {
     const navigate = useNavigate();
@@ -116,24 +119,21 @@ function Project() {
                     {/* Ideation Page */}
                     {activePage === 'ideation' && (
                         <div className="page-content">
-                            <h2>Ideation</h2>
-                            <p>Coming soon...</p>
+                            <IdeaCreation project={projectInfo} />
                         </div>
                     )}
 
                     {/* Story Builder Page */}
                     {activePage === 'story-builder' && (
-                        <div className="page-content">
-                            <h2>Story Builder</h2>
-                            <p>Coming soon...</p>
+                        <div className="page-content story-builder-content">
+                            <StoryBuilder onNavigate={handleNavigation} />
                         </div>
                     )}
 
                     {/* Backlog Page */}
                     {activePage === 'backlog' && (
-                        <div className="page-content">
-                            <h2>Backlog</h2>
-                            <p>Coming soon...</p>
+                        <div className="page-content story-builder-content">
+                            <StoryList />
                         </div>
                     )}
 
