@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './StoryCard.css';
 
-const StoryCard = ({ story, onEdit, onDelete, onShowIdea, onAddComment }) => {
+const StoryCard = ({ story, onEdit, onDelete, onShowIdea, onAddComment, ...props }) => {
   const [showComments, setShowComments] = useState(false);
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -14,7 +14,11 @@ const StoryCard = ({ story, onEdit, onDelete, onShowIdea, onAddComment }) => {
   };
 
   return (
-    <div className={`story-card ${showComments ? 'comments-visible' : ''}`}>
+    <div
+      className={`story-card ${showComments ? 'comments-visible' : ''} ${props.isDragging ? 'dragging' : ''}`}
+      draggable={props.draggable}
+      onDragStart={props.onDragStart}
+      onDragEnd={props.onDragEnd}>
       <div className="story-card-header">
         <div className="story-id">Story #{story.storyId || story.id}</div>
         <div className="story-actions">
