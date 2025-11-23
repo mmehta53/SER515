@@ -127,5 +127,5 @@ The React application should open in your browser (http://localhost:5173).
 | ------------------------------------ | --------------------------------------------------------------------------- |
 | `ModuleNotFoundError`                | Reinstall dependencies or activate your virtual environment.                |
 | `MongoDB connection failed`          | Ensure MongoDB is running and the URI in `.env` is correct.                 |
-
+| **Backend failed to start (Mac)** | **Turn off AirPlay Receiver** in **System Settings** -> **General** -> **AirDrop & Handoff**, as it may use port 5000. Alternatively, change the backend port. |
 ---
