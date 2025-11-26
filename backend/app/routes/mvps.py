@@ -79,3 +79,50 @@ def get_mvps_for_project():
         
     return jsonify({'success': True, 'mvps': results}), 200
 
+@mvps_bp.route('/<mvp_id>', methods=['PUT'])
+@jwt_required()
+def update_mvp(mvp_id):
+    """Update an MVP's details"""
+    data = request.get_json()
+    db = get_db()
+    try:
+        # only chickens can update MVPs
+        if not require_chicken():
+            return jsonify({'success': False, 'error': 'Only chicken role may update MVPs'}), 403
+        mvp = Mvp.objects.get(mvpId=mvp_id)
+        if 'name' in data:
+            mvp.name = data['name']
+        if 'description' in data:
+            mvp.description = data['description']
+        if 'targetReleaseDate' in data:
+            # Convert string 'YYYY-MM-DD' to datetime object, or None if empty
+            target_date_str = data.get('targetReleaseDate')
+            mvp.targetReleaseDate = datetime.strptime(target_date_str, '%Y-%m-%d') if target_date_str else None
+        
+        mvp.save()
+        return jsonify({'success': True, 'mvp': mvp.to_dict()}), 200
+    except DoesNotExist:
+        return jsonify({'success': False, 'error': 'MVP not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
+
+@mvps_bp.route('/<mvp_id>', methods=['DELETE'])
+@jwt_required()
+def delete_mvp(mvp_id):
+    """Delete an MVP"""
+    db = get_db()
+    # Only chickens can delete MVPs
+    if not require_chicken():
+        return jsonify({'success': False, 'error': 'Only chicken role may delete MVPs'}), 403
+
+    # Unset mvpId and mvpStatus from all stories associated with this MVP
+    db.stories.update_many({'mvpId': mvp_id}, {'$unset': {'mvpId': ''}})
+    db.stories.update_many({'mvpId': mvp_id}, {'$unset': {'mvpStatus': ''}})
+
+    try:
+        mvp = Mvp.objects.get(mvpId=mvp_id)
+        mvp.delete()
+        return jsonify({'success': True, 'message': 'MVP deleted successfully'}), 200
+    except DoesNotExist:
+        return jsonify({'success': False, 'error': 'MVP not found'}), 404
+    
