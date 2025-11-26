@@ -126,3 +126,67 @@ def delete_mvp(mvp_id):
     except DoesNotExist:
         return jsonify({'success': False, 'error': 'MVP not found'}), 404
     
+@mvps_bp.route('/<mvp_id>/stories', methods=['POST'])
+@jwt_required()
+def assign_story_to_mvp(mvp_id):
+    """Assign a story to an MVP"""
+    data = request.get_json()
+    story_id = data.get('storyId')
+    if not story_id:
+        return jsonify({'success': False, 'error': 'storyId is required'}), 400
+
+    db = get_db()
+    try:
+        # Only pig or chicken can add stories to an MVP
+        claims_role = get_current_role()
+        if claims_role not in ['pig', 'chicken']:
+            return jsonify({'success': False, 'error': 'Only pig or chicken role may add stories to an MVP'}), 403
+
+        # Validate optional mvpStatus
+        mvp_status = data.get('mvpStatus')
+        if mvp_status:
+            if mvp_status not in ['must-have', 'nice-to-have']:
+                return jsonify({'success': False, 'error': 'Invalid mvpStatus. Must be must-have or nice-to-have'}), 400
+            # Only chickens are allowed to set the mvpStatus
+            if claims_role != 'chicken':
+                return jsonify({'success': False, 'error': 'Only chicken role may set MVP-specific story status'}), 403
+
+        # Add story to MVP's list
+        Mvp.objects(mvpId=mvp_id).update_one(add_to_set__storyIds=story_id)
+
+        # Set mvpId and optionally mvpStatus on the story
+        update_fields = {'mvpId': mvp_id}
+        if mvp_status:
+            update_fields['mvpStatus'] = mvp_status
+
+        db.stories.update_one({'storyId': story_id}, {'$set': update_fields})
+
+        return jsonify({'success': True, 'message': 'Story assigned to MVP'}), 200
+    except DoesNotExist:
+        return jsonify({'success': False, 'error': 'MVP not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
+
+@mvps_bp.route('/<mvp_id>/stories/<story_id>', methods=['DELETE'])
+@jwt_required()
+def remove_story_from_mvp(mvp_id, story_id):
+    """Remove a story from an MVP"""
+    db = get_db()
+    # Only chickens may remove stories from an MVP
+    if not require_chicken():
+        return jsonify({'success': False, 'error': 'Only chicken role may remove stories from an MVP'}), 403
+
+    # Remove story from MVP's list
+    try:
+        Mvp.objects(mvpId=mvp_id).update_one(pull__storyIds=story_id)
+
+        # Unset mvpId and mvpStatus on the story
+        db.stories.update_one({'storyId': story_id}, {'$unset': {'mvpId': '', 'mvpStatus': ''}})
+
+        return jsonify({'success': True, 'message': 'Story removed from MVP'}), 200
+    except DoesNotExist:
+        return jsonify({'success': False, 'error': 'MVP not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
+
+
