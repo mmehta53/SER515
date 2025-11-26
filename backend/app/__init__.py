@@ -28,6 +28,7 @@ def create_app():
     from app.routes.ideas import ideas_bp
     from app.routes.admin import admin_bp
     from app.routes.stories import stories_bp
+    from app.routes.mvps import mvps_bp
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -35,5 +36,6 @@ def create_app():
     app.register_blueprint(ideas_bp, url_prefix='/api/ideas')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(stories_bp, url_prefix='/api/stories')
+    app.register_blueprint(mvps_bp, url_prefix='/api/mvps')
     
     return app
