@@ -24,6 +24,7 @@ def require_chicken():
     """Return True if current user is a chicken role, False otherwise"""
     return get_current_role() == 'chicken'
 
+#post API to create MVP
 @mvps_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_mvp():
