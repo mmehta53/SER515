@@ -190,3 +190,69 @@ def remove_story_from_mvp(mvp_id, story_id):
         return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
 
 
+@mvps_bp.route('/<mvp_id>/stories/<story_id>', methods=['PUT'])
+@jwt_required()
+def update_mvp_story_status(mvp_id, story_id):
+    """Allow chicken to set or change the mvpStatus for a story already assigned to an MVP.
+
+    The request body should include {'mvpStatus': 'must-have'|'nice-to-have'|null}
+    Only role 'chicken' is allowed to set or change this. If mvpStatus is null/empty it will be removed.
+    """
+    data = request.get_json() or {}
+    mvp_status = data.get('mvpStatus')
+
+    # Only chickens may set/change mvpStatus
+    if not require_chicken():
+        return jsonify({'success': False, 'error': 'Only chicken role may set MVP-specific story status'}), 403
+
+    # Validate mvp_status if provided
+    if mvp_status is not None and mvp_status not in ['must-have', 'nice-to-have', '']:
+        return jsonify({'success': False, 'error': 'Invalid mvpStatus. Must be must-have or nice-to-have or empty to unset'}), 400
+
+    db = get_db()
+    # Ensure story exists and is currently assigned to this mvp
+    story = db.stories.find_one({'storyId': story_id})
+    if not story:
+        return jsonify({'success': False, 'error': 'Story not found'}), 404
+
+    if story.get('mvpId') != mvp_id:
+        return jsonify({'success': False, 'error': 'Story is not assigned to the given MVP'}), 400
+
+    try:
+        if mvp_status:
+            db.stories.update_one({'storyId': story_id}, {'$set': {'mvpStatus': mvp_status}})
+        else:
+            db.stories.update_one({'storyId': story_id}, {'$unset': {'mvpStatus': ''}})
+
+        updated = db.stories.find_one({'storyId': story_id})
+        convert_objectid_to_str(updated)
+        return jsonify({'success': True, 'story': updated}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
+
+@mvps_bp.route('/available-stories', methods=['GET'])
+@jwt_required()
+def get_available_stories():
+    """
+    Get stories that are 'groomed' and not yet assigned to an MVP for a project.
+    """
+    project_id = request.args.get('projectId')
+    if not project_id:
+        return jsonify({'success': False, 'error': 'projectId is required'}), 400
+
+    db = get_db()
+    query = {
+        'projectId': project_id,
+        'status': 'groomed',
+        'mvpId': {'$exists': False}
+    }
+    stories = list(db.stories.find(query))
+
+    for story in stories:
+        convert_objectid_to_str(story)
+        if 'created_at' in story and isinstance(story['created_at'], datetime):
+            story['created_at'] = story['created_at'].isoformat()
+        if 'updated_at' in story and isinstance(story['updated_at'], datetime):
+            story['updated_at'] = story['updated_at'].isoformat()
+
+    return jsonify({'success': True, 'stories': stories}), 200
