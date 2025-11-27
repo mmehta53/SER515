@@ -116,8 +116,7 @@ def delete_mvp(mvp_id):
         return jsonify({'success': False, 'error': 'Only chicken role may delete MVPs'}), 403
 
     # Unset mvpId and mvpStatus from all stories associated with this MVP
-    db.stories.update_many({'mvpId': mvp_id}, {'$unset': {'mvpId': ''}})
-    db.stories.update_many({'mvpId': mvp_id}, {'$unset': {'mvpStatus': ''}})
+    db.stories.update_many({'mvpId': mvp_id}, {'$unset': {'mvpId': '', 'mvpStatus': ''}})
 
     try:
         mvp = Mvp.objects.get(mvpId=mvp_id)

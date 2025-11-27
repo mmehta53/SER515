@@ -36,8 +36,10 @@ const MvpPlanning = () => {
         }
         if (projId) {
             setProjectId(projId);
-            fetchMvps(projId);
-            fetchAvailableStories(projId);
+            // Chain API calls to avoid potential race conditions on the backend
+            fetchMvps(projId).then(() => {
+                fetchAvailableStories(projId);
+            });
         } else {
             setError('Project ID not found. Please go back to the dashboard and select a project.');
             setLoading(false);
