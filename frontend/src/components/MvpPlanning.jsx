@@ -419,22 +419,10 @@ const MvpPlanning = () => {
                                     {showAddToMvp === story.storyId && (
                                         <div className="add-to-mvp-dropdown">
                                             {mvps.length > 0 ? mvps.map(mvp => (
-                                                <div key={mvp.mvpId} style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    {/* If current user is a chicken allow selecting mvp-specific status */}
-                                                    {role === 'chicken' ? (
-                                                        <>
-                                                            <button onClick={() => handleAddStoryToMvp(story.storyId, mvp.mvpId, 'must-have')}>
-                                                                {mvp.name} — add as must-have
-                                                            </button>
-                                                            <button onClick={() => handleAddStoryToMvp(story.storyId, mvp.mvpId, 'nice-to-have')}>
-                                                                {mvp.name} — add as nice-to-have
-                                                            </button>
-                                                        </>
-                                                    ) : (
-                                                        <button key={mvp.mvpId} onClick={() => handleAddStoryToMvp(story.storyId, mvp.mvpId)}>
-                                                            {mvp.name}
-                                                        </button>
-                                                    )}
+                                                <div key={mvp.mvpId}>
+                                                    <button onClick={() => handleAddStoryToMvp(story.storyId, mvp.mvpId)}>
+                                                        {mvp.name}
+                                                    </button>
                                                 </div>
                                             )) : <div className="no-mvps-to-add">No MVPs exist</div>}
                                         </div>
