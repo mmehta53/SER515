@@ -1,365 +1,409 @@
 /* Page container */
 .idea-creation-container {
-  /* Removed container styles to inherit from Project.jsx's .page-content */
   font-family: "Segoe UI", system-ui, -apple-system;
-  color: #1f2937;
+  color: #212529;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Add new idea button */
 .toggle-form-btn {
   display: inline-block;
-  background: linear-gradient(180deg,#1682d6,#0b63a8);
+  background: #007bff;
   color: #fff;
-  font-weight: 700;
-  padding: 14px 20px;
-  border-radius: 12px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(11, 99, 168, 0.12);
-  margin-bottom: 18px;
-  font-size: 1.05rem;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  margin-bottom: 24px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-/* Idea creation form */
-.idea-form {
+.toggle-form-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.toggle-form-btn:active {
+  transform: translateY(0);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 70vh; 
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f8f9fa;
+  color: #212529;
+}
+
+/* ------------------------------ */
+/* UPDATED TEXTBOX SPACING ONLY   */
+/* ------------------------------ */
+
+.idea-form-modal {
+  padding: 20px 28px;     
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  gap: 16px;           
+}
+.idea-form-modal input,
+.idea-form-modal textarea {
+  padding: 12px 14px; 
 }
 
-/* Larger labels if you want them visible */
-.idea-form label {
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 4px;
-}
 
-/* Big inputs to match the tall stacked inputs in your sketch */
-.idea-form input[type="text"],
-.idea-form input[type="search"],
-.idea-form textarea {
+.idea-form-modal input[type="text"],
+.idea-form-modal input,
+.idea-form-modal textarea {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid #e6e9ef;
-  font-size: 1rem;
+  padding: 16px 18px;   
+  border: 1px solid #dee2e6;
+  border-radius: 10px;   
+  font-size: 1.05rem;
+  font-family: inherit;
   outline: none;
-  background: #fff;
-  box-shadow: 0 6px 18px rgba(11, 121, 208, 0.03);
+  margin-top: 4px;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+  background: #ffffff;
 }
 
-/* Description */
-.idea-form textarea {
-  min-height: 120px;   
+.idea-form-modal textarea {
+  min-height: 110px;     
   resize: vertical;
 }
 
-/* Tags */
-.idea-form .tags-input {
-  min-height: 44px;
+.idea-form-modal input:focus,
+.idea-form-modal textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
 }
 
-/* Submit button (Create Idea) */
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 6px;
-}
-.submit-btn {
-  background: #22a55e;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
+/* Submit button */
+.submit-btn-modal {
+  margin-top: 10px;
+  padding: 14px 20px;
   border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.submit-btn:hover { filter: brightness(0.95); }
-
-/*  Filter row under form (from sketch 1) */
-/* .filter-container {
-  display: flex;
-  gap: 10px;
-  margin: 12px 0 18px 0;
-  align-items: center;
-}
-.filter-container input {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #e6e9ef;
-}
-.filter-container button {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: none;
-  background: #6b7280;
-  color: #fff;
+  background: #007bff;
+  color: white;
   font-weight: 600;
+  font-size: 1.05rem;
+  border: none;
   cursor: pointer;
-} */
+  transition: 0.25s ease;
+  width: 100%;
+}
 
+.submit-btn-modal:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+.submit-btn-modal:active {
+  transform: translateY(0);
+}
 
 /* Ideas list layout and cards */
 .ideas-columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 12px;
+  gap: 20px;
+  margin-top: 24px;
 }
+
 .ideas-column {
-  background: #ffffff;
+  background: #f8f9fa;
   padding: 16px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  min-height: 200px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  min-height: 300px;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
 }
+
+.ideas-column.drag-over {
+  background: #e7f3ff;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
 .column-title {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.1rem;
+  font-weight: 700;
   text-transform: capitalize;
   padding-bottom: 12px;
-  margin: 0 0 12px 0;
-  border-bottom: 1px solid #e5e7eb;
-  color: #4b5563;
+  margin: 0 0 16px 0;
+  border-bottom: 2px solid #e9ecef;
+  color: #495057;
 }
+
 .ideas-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: block;
 }
+
 .ideas-list .idea-card {
   background: #fff;
   padding: 16px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.4s ease;
 }
-.idea-card { cursor: grab; }
-.idea-card:hover { cursor: pointer; transform: translateY(-2px); transition: transform 120ms ease; }
-.idea-card.dragging { cursor: grabbing; }
-.idea-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.idea-card .title {
-  font-weight: 800;
-  font-size: 1.02rem;
+
+.idea-card {
+  cursor: grab;
 }
-.idea-index { font-weight: 900; display:inline-block; margin-right:8px; color: #4b5563; }
-.idea-creator { display:inline-block; color:#6b7280; margin-left:6px; }
-.idea-title { font-weight:800; margin-top:6px; margin-bottom:6px; }
-.idea-description { margin-bottom:8px; color:#374151; }
-.idea-card .meta {
-  color: #6b7280;
+
+.idea-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #007bff;
+}
+
+.idea-card.dragging {
+  cursor: grabbing;
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.idea-creator {
+  color: #6c757d;
+  margin-left: 6px;
   font-size: 0.9rem;
 }
-.idea-card .description {
-  color: #374151;
+
+.idea-title {
+  font-weight: 700;
+  margin-top: 6px;
   margin-bottom: 8px;
+  color: #212529;
 }
-.idea-card .tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+
+.idea-description {
+  margin-bottom: 12px;
+  color: #495057;
+  line-height: 1.5;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
 .tag {
-  background: #eef2ff;
-  color: #0b63a8;
-  padding: 4px 8px;
-  border-radius: 8px;
+  background: #e7f3ff;
+  color: #007bff;
+  padding: 4px 10px;
+  border-radius: 6px;
   font-size: 0.85rem;
 }
 
-/* Actions row: upvote / downvote / comment */
-/* .actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+.tag:hover {
+  background: #d1e7ff;
+  transform: scale(1.05);
 }
-.actions button {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-}
-.upvote { background: #0b79d0; color: #fff; }
-.downvote { background: #df5b5b; color: #fff; }
-.comment-btn { background: #6b7280; color: #fff; } */
 
-/* Comment box inline under idea (sketch shows simple input) */
-/* .comment-box {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.comment-box textarea {
-  flex: 1;
-  min-height: 44px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e6e9ef;
-}
-.comment-box .btn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-}
-.comment-box .submit-comment { background: #0b79d0; color: #fff; }
-.comment-box .cancel-comment { background: #6b7280; color: #fff; } */
-
-/* Comments list under each idea */
-/* .comments-list {
+/* Comments */
+.comments-list {
   margin-top: 12px;
-  border-top: 1px dashed #eef2f6;
-  padding-top: 10px;
+  border-top: 1px solid #e9ecef;
+  padding-top: 12px;
 }
+
 .comment-item {
-  padding: 8px;
+  padding: 10px;
   border-radius: 6px;
-  background-color: #f9fafb;
+  background-color: #f8f9fa;
   margin-top: 8px;
-  color: #111827;
+  color: #212529;
   font-size: 0.9rem;
-}
-.comment-item strong { margin-right: 6px; } */
-
-.no-comments {
-  font-style: italic;
-  color: #9ca3af;
-  font-size: 0.9rem;
-  text-align: center;
-  padding: 16px 0;
-  border-top: 1px dashed #e5e7eb;
-  margin-top: 12px;
+  border: 1px solid #e9ecef;
 }
 
 /* Loading & error */
 .loading {
   text-align: center;
-  font-weight: 700;
-  color: #374151;
-}
-.error-message {
-  color: #b91c1c;
-  background: rgba(185,28,28,0.06);
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-weight: 700;
+  padding: 20px;
+  font-weight: 600;
 }
 
-.upvote.disabled, .downvote.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.error-banner {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
 }
 
 /* Actions row styling */
 .actions-inline {
-  display:flex;
-  gap:10px;
-  align-items:center;
-  margin-top:12px;
-}
-.actions button {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-}
-.upvote { background: #0b79d0; color: #fff; }
-.downvote { background: #df5b5b; color: #fff; }
-.comment-btn { background: #6b7280; color: #fff; font-size: 0.85rem; }
-
-/* Comment box inline under idea */
-.comment-box {
-  margin-top: 10px;
   display: flex;
   gap: 8px;
-  align-items: flex-start;
-}
-.comment-box textarea {
-  flex: 1;
-  min-height: 60px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e6e9ef;
-}
-.submit-comment { background: #0b79d0; color: #fff; padding:8px 10px; border-radius:8px; border:none; }
-.cancel-comment { background: #6b7280; color: #fff; padding:8px 10px; border-radius:8px; border:none; }
-
-/* Drag & drop visuals */
-.ideas-column.drag-over {
-  outline: 2px dashed rgba(11, 121, 208, 0.35);
-  background: linear-gradient(180deg, rgba(11,121,208,0.02), transparent);
-}
-.idea-card.dragging {
-  opacity: 0.6;
-  transform: scale(0.995);
-  box-shadow: 0 4px 12px rgba(6,98,168,0.08);
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
-/* Inline edit form inside card */
+.actions-inline button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.upvote { background: #007bff; color: white; }
+.downvote { background: #dc3545; color: white; }
+.comment-btn { background: #6c757d; color: white; }
+.move-to-story-btn { background: #28a745; color: white; }
+
+/* Inline edit form */
 .idea-edit-input {
   width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #e6e9ef;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
   margin-bottom: 8px;
 }
-.edit-actions { display:flex; gap:8px; justify-content:flex-end; }
-.save-edit { background:#0b79d0; color:#fff; padding:8px 12px; border-radius:8px; border:none; }
-.cancel-edit { background:#6b7280; color:#fff; padding:8px 12px; border-radius:8px; border:none; }
 
-.ideas-main-header {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
+.idea-edit-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 }
 
-.idea-card.locked {
-  cursor: not-allowed;
-  background-color: #f3f4f6; /* A light grey to indicate it's locked */
-  opacity: 0.8;
-}
-
+/* Highlight animation */
 .idea-card.highlight {
-  transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7);
-  transform: scale(1.02);
+  animation: highlightPulse 2.5s ease;
 }
 
-@keyframes highlight-fade {
-  from { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7); transform: scale(1.02); }
-  to { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); transform: scale(1); }
+@keyframes highlightPulse {
+  0%, 100% {
+    background: #fff;
+  }
+  50% {
+    background: #fff3cd;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+  }
 }
 
-/* General error banner for top-level messages */
-.error-banner {
-  background-color: #fef2f2;
-  color: #b91c1c;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-weight: 600;
-  border: 1px solid #fecaca;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .ideas-columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .ideas-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .idea-form-modal {
+    padding: 28px;
+  }
+
+  .toggle-form-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .idea-form-modal {
+    padding: 20px;
+  }
 }

@@ -7,27 +7,25 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    project: project?.projId || "",   // this will map to projId when posting
+    project: project?.projId || "",
     tags: ""
   });
-
-  // const [filterUsername, setFilterUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [commentIdeaId, setCommentIdeaId] = useState(null);
   const [editingIdeaId, setEditingIdeaId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', description: '', tags: '' });
   const ideaRefs = useRef({});
 
- useEffect(() => {
+  useEffect(() => {
     const projectId = project?.projId;
     if (projectId) {
       setFormData(prev => ({ ...prev, project: projectId }));
       loadIdeas(projectId);
     }
-  }, [project]); // Re-run if project prop changes
+  }, [project]);
 
   useEffect(() => {
     if (highlightIdeaId && ideaRefs.current[highlightIdeaId]) {
@@ -42,6 +40,7 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
   }, [highlightIdeaId, onHighlightDone, ideas]);
 
   const normalizeId = (idea) => idea.ideaId || idea.id || idea._id || "";
+
   const getCurrentUserId = () => {
     try {
       const raw = localStorage.getItem('user');
@@ -53,7 +52,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     }
   };
 
-  // Drag/drop: track currently dragged id for visual feedback
   const [draggedIdeaId, setDraggedIdeaId] = useState(null);
 
   const loadIdeas = async (projId = "") => {
@@ -62,14 +60,12 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     try {
       const projectToUse = projId || formData.project;
       if (!projectToUse) {
-        setIdeas([]); // nothing to fetch
+        setIdeas([]);
         setLoading(false);
         return;
       }
       const resp = await api.get(`/ideas/project/${encodeURIComponent(projectToUse)}`);
-      // backend returns array of idea dicts
       const data = resp.data || [];
-      // normalize a few fields so UI works with different shapes
       const normalized = data.map(i => ({
         ...i,
         _localId: normalizeId(i),
@@ -82,7 +78,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
         upvotes: typeof i.upvotes === "number" ? i.upvotes : 0,
         downvotes: typeof i.downvotes === "number" ? i.downvotes : 0
       }));
-      // derive current user's vote for each idea
       const currentUserId = getCurrentUserId();
       normalized.forEach(n => {
         const my = (n.votes || []).find(v => v.userId === currentUserId);
@@ -107,20 +102,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // const handleFilterChange = (e) => setFilterUsername(e.target.value);
-
-  // const applyFilter = () => {
-  //   // client-side filter on loaded ideas
-  //   if (!filterUsername) {
-  //     loadIdeas(formData.project);
-  //     return;
-  //   }
-  //   setIdeas(prev => prev.filter(idea => {
-  //     const username = idea.createdByName || "";
-  //     return username.toLowerCase() === filterUsername.trim().toLowerCase();
-  //   }));
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -131,18 +112,14 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
         setLoading(false);
         return;
       }
-
-      // backend expects "projId" and tags can be a comma string (your backend's parse_tags expects a string)
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         projId: formData.project.trim(),
         tags: formData.tags ? formData.tags.trim() : ""
       };
-
       const resp = await api.post("/ideas/", payload);
       const createdIdea = resp.data;
-
       const normalized = {
         ...createdIdea,
         _localId: normalizeId(createdIdea),
@@ -153,14 +130,14 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
         upvotes: typeof createdIdea.upvotes === "number" ? createdIdea.upvotes : 0,
         downvotes: typeof createdIdea.downvotes === "number" ? createdIdea.downvotes : 0
       };
-
-      // set currentUserVote for created idea
-      try { const uid = getCurrentUserId(); const mv = (normalized.votes || []).find(v=>v.userId===uid); normalized.currentUserVote = mv?mv.voteType:null; } catch(e){}
-
-  setIdeas(prev => [normalized, ...prev]);
-  // clear only the fields we want to reset but keep the project so list remains
-  setFormData(prev => ({ ...prev, title: "", description: "", tags: "" }));
-      setShowForm(false);
+      try { 
+        const uid = getCurrentUserId(); 
+        const mv = (normalized.votes || []).find(v=>v.userId===uid); 
+        normalized.currentUserVote = mv?mv.voteType:null; 
+      } catch(e){}
+      setIdeas(prev => [normalized, ...prev]);
+      setFormData(prev => ({ ...prev, title: "", description: "", tags: "" }));
+      setShowModal(false);
     } catch (err) {
       console.error(err);
       setError("Failed to create idea");
@@ -169,7 +146,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     }
   };
 
-  // Inline edit handlers (client-side only)
   const startEditing = (idea) => {
     setEditingIdeaId(idea._localId || idea.ideaId || idea.id || idea._id);
     setEditForm({ title: idea.title || '', description: idea.description || '', tags: (idea.tags||[]).join(', ') });
@@ -182,14 +158,18 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
 
   const saveEdit = (idea) => {
     const id = idea._localId || idea.ideaId || idea.id || idea._id;
-    const updated = { ...idea, title: editForm.title.trim(), description: editForm.description.trim(), tags: editForm.tags.split(',').map(t => t.trim()).filter(Boolean) };
-    // Persist edit to backend
+    const updated = { 
+      ...idea, 
+      title: editForm.title.trim(), 
+      description: editForm.description.trim(), 
+      tags: editForm.tags.split(',').map(t => t.trim()).filter(Boolean) 
+    };
     (async () => {
       try {
         const payload = {
           title: updated.title,
           description: updated.description,
-          tags: editForm.tags, // Send the raw comma-separated string
+          tags: editForm.tags,
         };
         const resp = await api.put(`/ideas/${encodeURIComponent(id)}`, payload);
         const saved = resp.data;
@@ -197,7 +177,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
         setIdeas(prev => prev.map(i => (i._localId === id ? norm : i)));
       } catch (err) {
         console.error('Failed to save edit', err);
-        // fallback to local update
         setIdeas(prev => prev.map(i => (i._localId === id ? { ...i, ...updated } : i)));
       } finally {
         setEditingIdeaId(null);
@@ -206,10 +185,10 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
   };
 
   const voteOnIdea = async (ideaId, voteType) => {
-    // voteType: 'upvote' | 'downvote'
     try {
-      const endpoint = voteType === 'upvote' ? `/ideas/${encodeURIComponent(ideaId)}/upvote`
-                                            : `/ideas/${encodeURIComponent(ideaId)}/downvote`;
+      const endpoint = voteType === 'upvote' 
+        ? `/ideas/${encodeURIComponent(ideaId)}/upvote`
+        : `/ideas/${encodeURIComponent(ideaId)}/downvote`;
       const resp = await api.post(endpoint);
       return resp.data;
     } catch (err) {
@@ -217,21 +196,14 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     }
   };
 
-  const handleVote = async (idea) => {
-    // this helper resolves which vote from the clicked button via dataset
-    // kept simple: callers will call handleVote with (idea, 'upvote') etc
-  };
-
   const handleVoteClick = async (idea, voteType) => {
     setError("");
     try {
-      // prevent sending same vote twice
       if ((idea.currentUserVote || null) === voteType) {
-        setError(`You already ${voteType}`);
+        setError(`You already ${voteType}d`);
         return;
       }
       const updated = await voteOnIdea(idea.ideaId || idea._localId || idea.id || idea._id, voteType);
-      // normalize and replace
       const normalized = {
         ...updated,
         _localId: normalizeId(updated),
@@ -241,7 +213,12 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
         upvotes: typeof updated.upvotes === "number" ? updated.upvotes : 0,
         downvotes: typeof updated.downvotes === "number" ? updated.downvotes : 0
       };
-      try { const uid = getCurrentUserId(); normalized.votes = updated.votes || []; const mv = normalized.votes.find(v=>v.userId===uid); normalized.currentUserVote = mv?mv.voteType:null; } catch(e){}
+      try { 
+        const uid = getCurrentUserId(); 
+        normalized.votes = updated.votes || []; 
+        const mv = normalized.votes.find(v=>v.userId===uid); 
+        normalized.currentUserVote = mv?mv.voteType:null; 
+      } catch(e){}
       setIdeas(prev => prev.map(i => (i._localId === normalized._localId ? normalized : i)));
     } catch (err) {
       console.error(err);
@@ -249,12 +226,12 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     }
   };
 
-  // Drag & drop handlers
   const onDragStart = (e, idea) => {
     const id = idea._localId || idea.ideaId || idea.id || idea._id;
     e.dataTransfer.setData('text/plain', id);
     setDraggedIdeaId(id);
   };
+
   const onDragEnd = () => setDraggedIdeaId(null);
 
   const onColumnDragOver = (e) => {
@@ -265,43 +242,33 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain');
     if (!id) return;
-
-    // Prevent dropping into 'moved' column
     if (targetStatus === 'moved') {
       setError("Ideas can only be moved here by creating a user story.");
       setDraggedIdeaId(null);
       return;
     }
-
     const prevState = ideas;
     const dragged = prevState.find(i => (i._localId || i.ideaId || i.id || i._id) === id);
     if (!dragged) return setDraggedIdeaId(null);
-
-    // Prevent dragging out of 'moved' column
     if (dragged.status === 'moved') {
       setError("A 'moved' idea cannot change its status.");
       setDraggedIdeaId(null);
       return;
     }
-
-    // Optimistic UI update
     setIdeas(prev => {
       const updated = { ...dragged, status: targetStatus };
       const without = prev.filter(i => (i._localId || i.ideaId || i.id || i._id) !== id);
       return [updated, ...without];
     });
     setDraggedIdeaId(null);
-    // Persist status change
     (async () => {
       try {
         await api.put(`/ideas/${encodeURIComponent(id)}`, { status: targetStatus });
-        // Clear any previous errors on success
         if (error) {
           setError("");
         }
       } catch (err) {
         console.error('Failed to persist move', err);
-        // revert to previous state on failure
         setError("You are unauthorized to change the status of this idea. Only the creator can change it.");
         setIdeas(prevState);
       }
@@ -316,7 +283,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
   const handleCommentChange = (e) => setCommentText(e.target.value);
 
   const addCommentToIdea = async (ideaId, payload) => {
-    // POST to /ideas/<ideaId>/comment
     const resp = await api.post(`/ideas/${encodeURIComponent(ideaId)}/comment`, { text: payload.text });
     return resp.data;
   };
@@ -350,55 +316,50 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
 
   return (
     <div className="idea-creation-container">
-      <button onClick={() => setShowForm(!showForm)} className="toggle-form-btn">
-        {showForm ? "Cancel" : "+ Add New Idea"}
+      <button onClick={() => setShowModal(true)} className="toggle-form-btn">
+        + Create New Idea
       </button>
 
-      {/* General error message display */}
+      {/* Modal Dialog */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create New Idea</h2>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="idea-form-modal">
+              <input
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Idea Title"
+                required
+              />
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Idea Description"
+                required
+              />
+              <input
+                name="tags"
+                value={formData.tags}
+                onChange={handleChange}
+                placeholder="Tags (comma separated)"
+              />
+              <button type="submit" className="submit-btn-modal">Create Idea</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="error-banner">
           <span>{error}</span>
         </div>
       )}
-
-      {showForm && (
-        <form onSubmit={handleSubmit} className="idea-form">
-          <input
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Idea Title"
-            required
-          />
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Description"
-            required
-          />
-          <input
-            name="tags"
-            value={formData.tags}
-            onChange={handleChange}
-            placeholder="Tags (comma separated)"
-          />
-          <button type="submit" className="submit-btn">Create Idea</button>
-        </form>
-      )}
-
-      {/* Filter temporarily disabled
-      <div className="filter-container">
-        <input
-          type="text"
-          placeholder="Filter by creator username"
-          value={filterUsername}
-          onChange={handleFilterChange}
-        />
-        <button onClick={applyFilter}>Apply Filter</button>
-        <button onClick={() => loadIdeas(formData.project)}>Load Ideas for Project</button>
-      </div>
-      */}
 
       <h2 className="ideas-main-header">Ideas Board</h2>
       {ideas.length === 0 ? (
@@ -406,7 +367,7 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
       ) : (
         <div className="ideas-columns">
           {['new', 'reviewed', 'moved'].map((col) => (
-            <div className={`ideas-column`} key={col} onDragOver={onColumnDragOver} onDrop={(e) => onColumnDrop(e, col)}>
+            <div className="ideas-column" key={col} onDragOver={onColumnDragOver} onDrop={(e) => onColumnDrop(e, col)}>
               <h3 className="column-title">{col.charAt(0).toUpperCase() + col.slice(1)}</h3>
               <ul className="ideas-list">
                 {ideas.filter(i => ((i.status||'new').toLowerCase() === col)).map((idea) => {
@@ -425,7 +386,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
                     >
                       <div className="idea-title" style={{fontWeight:700}}>{idea.title}</div>
                       <div className="idea-creator">by {idea.createdByName || (idea.createdBy || '').slice(0,8)}</div>
-
                       {isEditing ? (
                         <div className="idea-edit">
                           <input className="idea-edit-input" name="title" value={editForm.title} onChange={handleEditChange} />
@@ -448,11 +408,9 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
                             {col === 'reviewed' && (
                               <button className="move-to-story-btn" onClick={() => onMoveToStoryBuilder(idea)}>🚀 Move to Story Builder</button>
                             )}
-                            {/* <button className="comment-btn" onClick={() => startEditing(idea)}>✏️ Edit</button> */}
                           </div>
                         </>
                       )}
-
                       <div className="comments-list">
                         {(idea.comments || []).length > 0 ? (
                           (idea.comments || []).map((c, idx) => (
@@ -464,7 +422,6 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
                           <div className="no-comments">No comments yet</div>
                         )}
                       </div>
-
                       {commentIdeaId === id && (
                         <div className="comment-box">
                           <textarea value={commentText} onChange={handleCommentChange} placeholder="Write a comment..." />
