@@ -20,9 +20,8 @@
 .sr-ready-box { border-color: #d4f2d9; background: #eafdec; }
 .sr-needs-box { border-color: #ffd6d6; background: #fff5f5; }
 
-.sr-readiness { position: relative; width: 160px; height: 18px; background: #eef2f8; border-radius: 10px; margin-top:6px; }
+.sr-readiness { position: relative; width: 160px; height: 12px; background: #eef2f8; border-radius: 10px; margin-top: 6px; }
 .sr-readiness-bar { position: absolute; left: 0; top: 0; bottom: 0; background: #007bff; border-radius: 10px; }
-.sr-readiness-label { margin-left: 8px; font-weight:600; display:inline-block; }
 
 .sr-filter { display:flex; align-items:center; gap:8px; }
 .sr-filter label { font-size: 13px; color:#555; }
@@ -38,11 +37,13 @@
 
 .col { display:flex; flex-direction:column; }
 .story-col { flex: 1.6; }
-.points-col { width: 110px; text-align:center; }
-.bv-col { width: 120px; text-align:center; }
-.goal-col { width: 120px; text-align:center; }
-.accept-col { width: 150px; text-align:center; }
-.status-col { width: 140px; text-align:center; }
+.points-col { width: 90px; text-align:center; }
+.bv-col { width: 100px; text-align:center; }
+.role-col { width: 100px; text-align:center; }
+.goal-col { width: 90px; text-align:center; }
+.desc-col { width: 90px; text-align:center; }
+.accept-col { width: 130px; text-align:center; }
+.status-col { width: 110px; text-align:center; }
 
 .sr-id { font-size:12px; color:#666; }
 .sr-title { font-size:14px; font-weight:600; }
