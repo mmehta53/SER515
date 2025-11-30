@@ -23,7 +23,9 @@ function SprintReadiness() {
               title: s.goal || s.title || s.description || 'No title',
               storyPoints: s.story_points || s.storyPoints || s.storyPoints || null,
               businessValue: s.business_value || s.businessValue || null,
+              role: s.role || null,
               goal: s.goal || s.role || null,
+              description: s.description || null,
               acceptance: s.acceptance_criteria || s.acceptance_criteria || s.acceptance || false,
               status: (s.status && (s.status === 'sprint-ready' || s.status === 'Sprint Ready')) ? 'Sprint Ready' : (s.status || 'Draft')
             }));
@@ -38,9 +40,9 @@ function SprintReadiness() {
 
       // fallback sample
       const sample = [
-        { id: 'US-201', title: 'OAuth login', storyPoints: 8, businessValue: 20, goal: 'Allow OAuth', acceptance: true, status: 'Sprint Ready' },
-        { id: 'US-202', title: 'Project page', storyPoints: null, businessValue: 10, goal: '', acceptance: false, status: 'Needs Work' },
-        { id: 'US-203', title: 'README template', storyPoints: 2, businessValue: null, goal: 'Provide README', acceptance: true, status: 'Needs Work' }
+        { id: 'US-201', title: 'OAuth login', storyPoints: 8, businessValue: 20, role: 'User', goal: 'Allow OAuth', description: 'Enable OAuth login for users', acceptance: true, status: 'Sprint Ready' },
+        { id: 'US-202', title: 'Project page', storyPoints: null, businessValue: 10, role: '', goal: '', description: '', acceptance: false, status: 'Needs Work' },
+        { id: 'US-203', title: 'README template', storyPoints: 2, businessValue: null, role: 'Developer', goal: 'Provide README', description: 'Create README template', acceptance: true, status: 'Needs Work' }
       ];
       setStories(sample);
       setLoading(false);
@@ -51,10 +53,12 @@ function SprintReadiness() {
   function assess(s) {
     const hasPoints = s.storyPoints !== null && s.storyPoints !== undefined;
     const hasBV = s.businessValue !== null && s.businessValue !== undefined;
+    const hasRole = s.role && String(s.role).trim().length > 0;
     const hasGoal = s.goal && String(s.goal).trim().length > 0;
+    const hasDescription = s.description && String(s.description).trim().length > 0;
     const hasAcceptance = !!s.acceptance;
-    const ready = hasPoints && hasBV && hasGoal && hasAcceptance;
-    return { ready, hasPoints, hasBV, hasGoal, hasAcceptance };
+    const ready = hasPoints && hasBV && hasRole && hasGoal && hasDescription && hasAcceptance;
+    return { ready, hasPoints, hasBV, hasRole, hasGoal, hasDescription, hasAcceptance };
   }
 
   const augmented = stories.map(s => ({ ...s, _assess: assess(s) }));
@@ -91,9 +95,9 @@ function SprintReadiness() {
           </div>
           <div className="sr-box sr-readiness-pct">
             <div className="sr-box-title">Readiness %</div>
+            <div className="sr-box-count">{readinessPct}%</div>
             <div className="sr-readiness">
               <div className="sr-readiness-bar" style={{ width: `${readinessPct}%` }} />
-              <div className="sr-readiness-label">{readinessPct}%</div>
             </div>
           </div>
         </div>
@@ -122,7 +126,9 @@ function SprintReadiness() {
           <div className="col story-col">Story</div>
           <div className="col points-col">Story Points</div>
           <div className="col bv-col">Business Value</div>
+          <div className="col role-col">Role described</div>
           <div className="col goal-col">Goal defined</div>
+          <div className="col desc-col">Description</div>
           <div className="col accept-col">Acceptance criteria</div>
           <div className="col status-col">Status</div>
         </div>
@@ -135,7 +141,9 @@ function SprintReadiness() {
             </div>
             <div className="col points-col">{s.storyPoints ?? '—'}</div>
             <div className="col bv-col">{s.businessValue ?? '—'}</div>
+            <div className="col role-col">{s._assess.hasRole ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
             <div className="col goal-col">{s._assess.hasGoal ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
+            <div className="col desc-col">{s._assess.hasDescription ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
             <div className="col accept-col">{s._assess.hasAcceptance ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
             <div className="col status-col">{s._assess.ready ? <span className="status-ready">Sprint Ready</span> : <span className="status-needs">Needs Work</span>}</div>
           </div>
