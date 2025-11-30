@@ -6,6 +6,7 @@ import IdeaCreation from './IdeaCreation'; // Import the IdeaCreation component
 import StoryBuilder from './StoryBuilder'; // Import the StoryBuilder component
 import StoryList from './StoryList'; // Import the StoryList component
 import MvpPlanning from './MvpPlanning'; // Import the MvpPlanning component
+import SprintReadiness from './SprintReadiness';
 
 function Project() {
     const navigate = useNavigate();
@@ -165,8 +166,7 @@ function Project() {
                     {/* Sprint Readiness Page */}
                     {activePage === 'sprint-readiness' && (
                         <div className="page-content">
-                            <h2>Sprint Readiness</h2>
-                            <p>Coming soon...</p>
+                            <SprintReadiness />
                         </div>
                     )}
 
