@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
 from app.models.project import Project
+from mongoengine.connection import get_db
 
 projects_bp = Blueprint('projects', __name__)
 
@@ -68,21 +69,33 @@ def get_projects():
         }), 401
     
     try:
+        db = get_db()
+        stories_collection = db['stories']
         # Get all projects for the organization
         projects = Project.get_projects_by_org_id(org_id)
         
         # Convert projects to list of dictionaries
-        projects_list = [{
-            'name': project.name,
-            'description': project.description,
-            'status': project.status,
-            'projId': project.projId,
-            'orgId': project.orgId,
-            'createdAt': project.createdAt,
-            'progress': project.progress,
-            'totalStories': project.totalStories,
-            'readyStories': project.readyStories
-        } for project in projects]
+        projects_list = []
+        for project in projects:
+            # Count sprint-ready stories for each project
+            ready_stories_count = stories_collection.count_documents({
+                'projectId': project.projId,
+                'status': 'sprint-ready'
+            })
+            total_stories_count = stories_collection.count_documents({
+                'projectId': project.projId
+            })
+            projects_list.append({
+                'name': project.name,
+                'description': project.description,
+                'status': project.status,
+                'projId': project.projId,
+                'orgId': project.orgId,
+                'createdAt': project.createdAt,
+                'progress': project.progress,
+                'totalStories': total_stories_count,
+                'readyStories': ready_stories_count
+            })
         
         return jsonify({
             'projects': projects_list
