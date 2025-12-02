@@ -8,6 +8,8 @@ function SprintReadiness() {
   const [filterStatus, setFilterStatus] = useState('All');
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const storiesPerPage = 5;
 
   useEffect(() => {
     async function load() {
@@ -42,7 +44,12 @@ function SprintReadiness() {
       const sample = [
         { id: 'US-201', title: 'OAuth login', storyPoints: 8, businessValue: 20, role: 'User', goal: 'Allow OAuth', description: 'Enable OAuth login for users', acceptance: true, status: 'Sprint Ready' },
         { id: 'US-202', title: 'Project page', storyPoints: null, businessValue: 10, role: '', goal: '', description: '', acceptance: false, status: 'Needs Work' },
-        { id: 'US-203', title: 'README template', storyPoints: 2, businessValue: null, role: 'Developer', goal: 'Provide README', description: 'Create README template', acceptance: true, status: 'Needs Work' }
+        { id: 'US-203', title: 'README template', storyPoints: 2, businessValue: null, role: 'Developer', goal: 'Provide README', description: 'Create README template', acceptance: true, status: 'Needs Work' },
+        { id: 'US-204', title: 'User Dashboard', storyPoints: 5, businessValue: 15, role: 'Admin', goal: 'View analytics', description: 'Dashboard with charts', acceptance: true, status: 'Sprint Ready' },
+        { id: 'US-205', title: 'Email notifications', storyPoints: 3, businessValue: 8, role: 'User', goal: 'Receive alerts', description: 'Send email alerts', acceptance: false, status: 'Needs Work' },
+        { id: 'US-206', title: 'API Integration', storyPoints: 13, businessValue: 25, role: 'Developer', goal: 'Connect APIs', description: 'Third party API integration', acceptance: true, status: 'Sprint Ready' },
+        { id: 'US-207', title: 'Search feature', storyPoints: 8, businessValue: 18, role: 'User', goal: 'Find content', description: 'Full text search', acceptance: true, status: 'Sprint Ready' },
+        { id: 'US-208', title: 'Export data', storyPoints: null, businessValue: 12, role: 'Admin', goal: 'Export reports', description: '', acceptance: false, status: 'Needs Work' }
       ];
       setStories(sample);
       setLoading(false);
@@ -78,6 +85,38 @@ function SprintReadiness() {
     if (query && !(`${s.title}`.toLowerCase().includes(query.toLowerCase()))) return false;
     return true;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / storiesPerPage);
+  const startIndex = (currentPage - 1) * storiesPerPage;
+  const paginatedStories = filtered.slice(startIndex, startIndex + storiesPerPage);
+
+  // Reset to page 1 when filter/search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, query]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   return (
     <div className="sr-root">
@@ -133,7 +172,7 @@ function SprintReadiness() {
           <div className="col status-col">Status</div>
         </div>
 
-        {filtered.map(s => (
+        {paginatedStories.map(s => (
           <div key={s.id} className="sr-row">
             <div className="col story-col">
               <div className="sr-id">{s.id}</div>
@@ -149,6 +188,34 @@ function SprintReadiness() {
           </div>
         ))}
       </div>
+
+      {filtered.length > 0 && (
+        <div className="sr-pagination">
+          <button
+            className="sr-page-btn sr-page-arrow"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            ‹
+          </button>
+          {getPageNumbers().map(page => (
+            <button
+              key={page}
+              className={`sr-page-btn ${currentPage === page ? 'sr-page-active' : ''}`}
+              onClick={() => handlePageChange(page)}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            className="sr-page-btn sr-page-arrow"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -68,3 +68,52 @@
   .sr-filter { margin-top: 8px; }
   .col { font-size: 13px; }
 }
+
+/* Pagination styles */
+.sr-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 16px 0;
+}
+
+.sr-page-btn {
+  min-width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.sr-page-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.sr-page-btn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.sr-page-active {
+  color: #333;
+  font-weight: 600;
+  border-bottom: 2px solid #333;
+  border-radius: 0;
+}
+
+.sr-page-arrow {
+  font-size: 20px;
+  color: #999;
+}
+
+.sr-page-arrow:hover:not(:disabled) {
+  color: #333;
+  background: transparent;
+}
