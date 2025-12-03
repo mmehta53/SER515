@@ -5,6 +5,7 @@ import './Project.css';
 import IdeaCreation from './IdeaCreation'; // Import the IdeaCreation component
 import StoryBuilder from './StoryBuilder'; // Import the StoryBuilder component
 import StoryList from './StoryList'; // Import the StoryList component
+import MvpPlanning from './MvpPlanning'; // Import the MvpPlanning component
 import SprintReadiness from './SprintReadiness';
 
 function Project() {
@@ -158,8 +159,7 @@ function Project() {
                     {/* MVP Planning Page */}
                     {activePage === 'mvp-planning' && (
                         <div className="page-content">
-                            <h2>MVP Planning</h2>
-                            <p>Coming soon...</p>
+                            <MvpPlanning />
                         </div>
                     )}
 
