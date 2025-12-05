@@ -53,6 +53,31 @@ const MvpPlanning = () => {
         }, 3000);
     };
 
+    const handleExport = async (mvpId, format, mvpName) => {
+        try {
+            showNotification(`Exporting ${mvpName} as ${format.toUpperCase()}...`);
+            const resp = await api.get(`/mvps/${mvpId}/export`, { params: { format }, responseType: 'blob' });
+
+            // Create blob and trigger download
+            const blob = new Blob([resp.data], { type: resp.headers['content-type'] || (format === 'pdf' ? 'application/pdf' : 'text/csv') });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const ext = format === 'pdf' ? 'pdf' : 'csv';
+            const safeName = (mvpName || mvpId).replace(/[^a-z0-9-_\.]/gi, '_');
+            a.href = url;
+            a.download = `${safeName}.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            showNotification(`Exported ${mvpName} as ${format.toUpperCase()}`);
+        } catch (err) {
+            console.error('Export error', err);
+            setError(err.response?.data?.error || err.message || 'Failed to export MVP');
+        }
+    };
+
     const fetchMvps = async (projId) => {
         try {
             const response = await api.get(`/mvps/?projectId=${projId}`);
@@ -224,12 +249,14 @@ const MvpPlanning = () => {
                         <div className="mvp-card-header">
                     <h3>{mvp.name}</h3>
                     <div className="mvp-actions">
-                                {role === 'chicken' && (
-                                    <>
-                                        <button className="btn-icon" title="Edit MVP" onClick={() => openModalForEdit(mvp)}>✏️</button>
-                                        <button className="btn-icon btn-danger" title="Delete MVP" onClick={() => handleDeleteMvp(mvp.mvpId)}>🗑️</button>
-                                    </>
-                                )}
+                                        {role === 'chicken' && (
+                                            <>
+                                                <button className="btn-icon" title="Edit MVP" onClick={() => openModalForEdit(mvp)}>✏️</button>
+                                                <button className="btn-icon" title="Export CSV" onClick={() => handleExport(mvp.mvpId, 'csv', mvp.name)}>📄 CSV</button>
+                                                <button className="btn-icon" title="Export PDF" onClick={() => handleExport(mvp.mvpId, 'pdf', mvp.name)}>📄 PDF</button>
+                                                <button className="btn-icon btn-danger" title="Delete MVP" onClick={() => handleDeleteMvp(mvp.mvpId)}>🗑️</button>
+                                            </>
+                                        )}
                     </div>
                 </div>
                 <p className="mvp-description">{mvp.description}</p>
