@@ -1,10 +1,14 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from mongoengine.connection import get_db
 from mongoengine.errors import DoesNotExist, ValidationError
 from datetime import datetime
 import uuid
 from app.models.mvp import Mvp
+import io
+import csv
+from io import BytesIO
+from bson import ObjectId
 
 def convert_objectid_to_str(doc):
     """Convert MongoDB ObjectId to string in document"""
@@ -255,3 +259,144 @@ def get_available_stories():
             story['updated_at'] = story['updated_at'].isoformat()
 
     return jsonify({'success': True, 'stories': stories}), 200
+
+
+@mvps_bp.route('/<mvp_id>/export', methods=['GET'])
+@jwt_required()
+def export_mvp(mvp_id):
+    """Export a single MVP's details as CSV or PDF.
+
+    Query params:
+      - format: 'csv' (default) or 'pdf'
+    Returns file attachment.
+    """
+    fmt = (request.args.get('format') or 'csv').lower()
+
+    # Fetch MVP
+    try:
+        mvp = Mvp.objects.get(mvpId=mvp_id)
+    except Exception:
+        return jsonify({'success': False, 'error': 'MVP not found'}), 404
+
+    mvp_dict = mvp.to_dict()
+
+    # Fetch stories for this MVP
+    db = get_db()
+    story_ids = mvp_dict.get('storyIds') or []
+    stories = []
+    if story_ids:
+        cursor = db.stories.find({'storyId': {'$in': story_ids}})
+        for s in cursor:
+            # convert objectid and datetimes
+            if '_id' in s:
+                s['_id'] = str(s['_1d']) if s.get('_1d') else str(s.get('_id'))
+            if 'created_at' in s and isinstance(s['created_at'], datetime):
+                s['created_at'] = s['created_at'].isoformat()
+            if 'updated_at' in s and isinstance(s['updated_at'], datetime):
+                s['updated_at'] = s['updated_at'].isoformat()
+            stories.append(s)
+
+    filename_base = f"mvp-{mvp_dict.get('name','') or mvp_id}".replace(' ', '_')
+
+    if fmt == 'csv':
+        # Create CSV in-memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # MVP meta
+        writer.writerow(['MVP Field', 'Value'])
+        writer.writerow(['mvpId', mvp_dict.get('mvpId')])
+        writer.writerow(['name', mvp_dict.get('name')])
+        writer.writerow(['description', mvp_dict.get('description') or ''])
+        writer.writerow(['targetReleaseDate', mvp_dict.get('targetReleaseDate') or ''])
+        writer.writerow(['projectId', mvp_dict.get('projectId') or ''])
+        writer.writerow(['createdAt', mvp_dict.get('createdAt') or ''])
+        writer.writerow(['updatedAt', mvp_dict.get('updatedAt') or ''])
+        writer.writerow([])
+
+        # Stories table
+        writer.writerow(['Stories'])
+        header = ['storyId', 'role', 'goal', 'description', 'acceptance_criteria', 'story_points', 'business_value', 'status', 'mvpStatus']
+        writer.writerow(header)
+        for s in stories:
+            row = [s.get('storyId'), s.get('role'), s.get('goal'), s.get('description'), s.get('acceptance_criteria'), s.get('story_points'), s.get('business_value'), s.get('status'), s.get('mvpStatus')]
+            writer.writerow([str(x) if x is not None else '' for x in row])
+
+        csv_bytes = output.getvalue().encode('utf-8')
+        buf = BytesIO(csv_bytes)
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name=f"{filename_base}.csv", mimetype='text/csv')
+
+    elif fmt == 'pdf':
+        # Generate simple PDF using reportlab
+        try:
+            from reportlab.lib.pagesizes import letter
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+            from reportlab.lib import colors
+            from reportlab.lib.styles import getSampleStyleSheet
+        except Exception:
+            return jsonify({'success': False, 'error': 'PDF generation not available (reportlab not installed)'}), 500
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        # Title
+        elements.append(Paragraph(f"MVP: {mvp_dict.get('name','')}", styles['Title']))
+        elements.append(Spacer(1, 12))
+
+        # MVP metadata
+        meta_data = [
+            ['Field', 'Value'],
+            ['mvpId', mvp_dict.get('mvpId')],
+            ['name', mvp_dict.get('name')],
+            ['description', mvp_dict.get('description') or ''],
+            ['targetReleaseDate', mvp_dict.get('targetReleaseDate') or ''],
+            ['projectId', mvp_dict.get('projectId') or ''],
+            ['createdAt', mvp_dict.get('createdAt') or ''],
+            ['updatedAt', mvp_dict.get('updatedAt') or '']
+        ]
+        t = Table(meta_data, hAlign='LEFT', colWidths=[120, 360])
+        t.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,0), colors.lightgrey), ('GRID', (0,0), (-1,-1), 0.25, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
+
+        # Stories table
+        if stories:
+            story_header = [
+                Paragraph('ID', styles['Normal']),
+                Paragraph('Role', styles['Normal']),
+                Paragraph('Goal', styles['Normal']),
+                Paragraph('Points', styles['Normal']),
+                Paragraph('Value', styles['Normal']),
+                Paragraph('Status', styles['Normal']),
+                Paragraph('MVP Status', styles['Normal'])
+            ]
+            data_table = [story_header]
+            for s in stories:
+                data_table.append([
+                    Paragraph(s.get('storyId', ''), styles['Normal']),
+                    Paragraph(s.get('role', ''), styles['Normal']),
+                    Paragraph(s.get('goal', ''), styles['Normal']),
+                    Paragraph(str(s.get('story_points', '')), styles['Normal']),
+                    Paragraph(str(s.get('business_value', '')), styles['Normal']),
+                    Paragraph(s.get('status', ''), styles['Normal']),
+                    Paragraph(s.get('mvpStatus', ''), styles['Normal'])
+                ])
+
+            tbl = Table(data_table, hAlign='LEFT', colWidths=[60, 60, 180, 40, 40, 60, 60])
+            tbl.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+                ('GRID', (0,0), (-1,-1), 0.25, colors.grey),
+                ('FONTSIZE', (0,0), (-1,-1), 9),
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ]))
+            elements.append(tbl)
+
+        doc.build(elements)
+        buffer.seek(0)
+        return send_file(buffer, as_attachment=True, download_name=f"{filename_base}.pdf", mimetype='application/pdf')
+
+    else:
+        return jsonify({'success': False, 'error': 'Invalid format. Use csv or pdf'}), 400
