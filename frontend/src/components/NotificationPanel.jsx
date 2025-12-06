@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import './NotificationPanel.css';
 
-const NotificationPanel = ({ projectId, isOpen, onClose, onOpenStory }) => {
+const NotificationPanel = ({ projectId, isOpen, onClose, onOpenStory, onCountChange }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,7 +17,11 @@ const NotificationPanel = ({ projectId, isOpen, onClose, onOpenStory }) => {
     try {
       setLoading(true);
       const resp = await api.get(`/notifications/?projectId=${projectId}&limit=30`);
-      setNotifications(resp.data.notifications || []);
+      const notifs = resp.data.notifications || [];
+      setNotifications(notifs);
+      // Inform parent about unread count
+      const unread = notifs.filter((n) => !n.isRead).length;
+      if (onCountChange) onCountChange(unread);
     } catch (err) {
       setError(err.message || 'Failed to load notifications');
       console.error('Error fetching notifications:', err);
@@ -34,6 +38,9 @@ const NotificationPanel = ({ projectId, isOpen, onClose, onOpenStory }) => {
           n.notificationId === notificationId ? { ...n, isRead: true } : n
         )
       );
+      // update parent unread count
+      const unread = notifications.filter((n) => n.notificationId !== notificationId && !n.isRead).length;
+      if (onCountChange) onCountChange(unread);
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
@@ -43,6 +50,7 @@ const NotificationPanel = ({ projectId, isOpen, onClose, onOpenStory }) => {
     try {
       await api.put(`/notifications/read-all?projectId=${projectId}`);
       setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+      if (onCountChange) onCountChange(0);
     } catch (err) {
       console.error('Error marking all as read:', err);
     }

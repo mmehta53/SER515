@@ -8,6 +8,7 @@ import StoryList from './StoryList';
 import MvpPlanning from './MvpPlanning';
 import SprintReadiness from './SprintReadiness';
 import NotificationPanel from './NotificationPanel';
+import api from '../utils/api';
 import NotificationSettings from './NotificationSettings';
 
 function Project() {
@@ -92,6 +93,27 @@ function Project() {
         // small delay to ensure StoryList has mounted and will receive prop
         setTimeout(() => setHighlightStoryId(storyId), 100);
     };
+
+    // Fetch unread notifications count for the current project
+    const fetchUnreadCount = async (projectId) => {
+        try {
+            if (!projectId) {
+                setUnreadCount(0);
+                return;
+            }
+            const resp = await api.get(`/notifications/?projectId=${projectId}&limit=100`);
+            const notifs = resp.data.notifications || [];
+            const unread = notifs.filter((n) => !n.isRead).length;
+            setUnreadCount(unread);
+        } catch (err) {
+            console.error('Error fetching unread count:', err);
+        }
+    };
+
+    // Refresh unread count when project changes
+    useEffect(() => {
+        if (projId) fetchUnreadCount(projId);
+    }, [projId]);
 
     return (
         <div className="project-container">
@@ -216,6 +238,7 @@ function Project() {
                 isOpen={notificationPanelOpen} 
                 onClose={() => setNotificationPanelOpen(false)}
                 onOpenStory={openStoryFromNotification}
+                onCountChange={(c) => setUnreadCount(c)}
             />
         </div>
     );
