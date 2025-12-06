@@ -4,6 +4,7 @@ from mongoengine.connection import get_db
 from datetime import datetime
 from bson import ObjectId
 import uuid
+from app.utils.notifications import broadcast_notification_to_project
 
 
 stories_bp = Blueprint('stories', __name__)
@@ -293,6 +294,45 @@ def update_story(story_id):
         
         # Retrieve updated story
         updated_story = collection.find_one({'storyId': story_id})
+        
+        # Trigger notifications if status changed to sprint-ready or essential fields changed
+        current_user_id = get_jwt_identity()
+        db = get_db()
+        user = db['users'].find_one({'userId': current_user_id})
+        user_name = user.get('firstName', 'Unknown') if user else 'Unknown'
+        project_id = updated_story.get('projectId')
+        
+        # Check if status changed to sprint-ready
+        if 'status' in data and data['status'] == 'sprint-ready' and story.get('status') != 'sprint-ready':
+            broadcast_notification_to_project(
+                project_id=project_id,
+                event_type='sprint_ready',
+                title=f"Story Ready for Sprint",
+                message=f"{user_name} marked '{updated_story.get('goal', 'Story')}' as sprint-ready",
+                triggered_by_id=current_user_id,
+                triggered_by_name=user_name,
+                related_story_id=story_id,
+                exclude_user_id=current_user_id,
+                deduplicate=True,
+            )
+        
+        # Notify on essential field changes (goal, acceptance_criteria, story_points, business_value)
+        essential_fields = ['goal', 'acceptance_criteria', 'story_points', 'business_value']
+        changed_essentials = [f for f in essential_fields if f in data and data[f] != story.get(f)]
+        
+        if changed_essentials:
+            field_names = ', '.join(changed_essentials)
+            broadcast_notification_to_project(
+                project_id=project_id,
+                event_type='story_updated',
+                title=f"Story Updated",
+                message=f"{user_name} updated {field_names} in '{updated_story.get('goal', 'Story')}'",
+                triggered_by_id=current_user_id,
+                triggered_by_name=user_name,
+                related_story_id=story_id,
+                exclude_user_id=current_user_id,
+                deduplicate=False,  # allow multiple updates
+            )
         
         convert_objectid_to_str(updated_story)
         # Convert datetime objects to ISO format strings

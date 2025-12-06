@@ -6,7 +6,7 @@ import StoryForm from './StoryForm';
 import StoryPreview from './StoryPreview';
 import './StoryList.css';
 
-const StoryList = ({ onShowIdea }) => {
+const StoryList = ({ onShowIdea, highlightStoryId }) => {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,6 +37,17 @@ const StoryList = ({ onShowIdea }) => {
       setLoading(false);
     }
   }, []);
+
+  // If a story is requested to be highlighted (e.g. from a notification), set the searchTerm
+  useEffect(() => {
+    if (highlightStoryId) {
+      // set search term to story id so it is visible
+      setSearchTerm(highlightStoryId);
+      // clear the highlight after a short delay
+      const t = setTimeout(() => setSearchTerm(''), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [highlightStoryId]);
 
   const loadStories = async (projId) => {
     if (!projId) {
@@ -305,6 +316,7 @@ const StoryList = ({ onShowIdea }) => {
                     onDragStart={(e) => onDragStart(e, story)}
                     onDragEnd={onDragEnd}
                     isDragging={draggedStoryId === (story.storyId || story.id)}
+                    isHighlighted={highlightStoryId && (story.storyId === highlightStoryId)}
                   />
                 ))}
               </div>

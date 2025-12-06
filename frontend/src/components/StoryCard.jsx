@@ -15,7 +15,7 @@ const StoryCard = ({ story, onEdit, onDelete, onShowIdea, onAddComment, ...props
 
   return (
     <div
-      className={`story-card ${showComments ? 'comments-visible' : ''} ${props.isDragging ? 'dragging' : ''}`}
+      className={`story-card ${showComments ? 'comments-visible' : ''} ${props.isDragging ? 'dragging' : ''} ${props.isHighlighted ? 'highlighted' : ''}`}
       draggable={props.draggable}
       onDragStart={props.onDragStart}
       onDragEnd={props.onDragEnd}>

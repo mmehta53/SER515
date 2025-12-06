@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import './Project.css';
-import IdeaCreation from './IdeaCreation'; // Import the IdeaCreation component
-import StoryBuilder from './StoryBuilder'; // Import the StoryBuilder component
-import StoryList from './StoryList'; // Import the StoryList component
-import MvpPlanning from './MvpPlanning'; // Import the MvpPlanning component
+import IdeaCreation from './IdeaCreation';
+import StoryBuilder from './StoryBuilder';
+import StoryList from './StoryList';
+import MvpPlanning from './MvpPlanning';
 import SprintReadiness from './SprintReadiness';
+import NotificationPanel from './NotificationPanel';
+import NotificationSettings from './NotificationSettings';
 
 function Project() {
     const navigate = useNavigate();
@@ -16,6 +18,9 @@ function Project() {
     const [ideaForStory, setIdeaForStory] = useState(null);
     const [highlightIdeaId, setHighlightIdeaId] = useState(null);
     const [projId, setProjId] = useState(null);
+    const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [highlightStoryId, setHighlightStoryId] = useState(null);
 
     useEffect(() => {
         // Get project info from location state
@@ -77,8 +82,16 @@ function Project() {
         { id: 'backlog', label: 'Backlog', icon: '📋' },
         { id: 'mvp-planning', label: 'MVP Planning', icon: '🎯' },
         { id: 'sprint-readiness', label: 'Sprint Readiness', icon: '⚡' },
-        { id: 'exports', label: 'Exports', icon: '📤' }
+        { id: 'exports', label: 'Exports', icon: '📤' },
+        { id: 'notification-settings', label: 'Notifications', icon: '🔔' }
     ];
+
+    const openStoryFromNotification = (storyId) => {
+        // Open backlog and set highlight for the requested story
+        setActivePage('backlog');
+        // small delay to ensure StoryList has mounted and will receive prop
+        setTimeout(() => setHighlightStoryId(storyId), 100);
+    };
 
     return (
         <div className="project-container">
@@ -124,9 +137,19 @@ function Project() {
                     <h1>
                         {navigationItems.find(item => item.id === activePage)?.label}
                     </h1>
-                    <button onClick={handleLogout} className="logout-button">
-                        Logout
-                    </button>
+                    <div className="header-actions">
+                        <button 
+                            className="notification-button"
+                            onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                            title="Notifications"
+                        >
+                            🔔
+                            {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+                        </button>
+                        <button onClick={handleLogout} className="logout-button">
+                            Logout
+                        </button>
+                    </div>
                 </header>
 
                 <div className="project-content">
@@ -152,7 +175,7 @@ function Project() {
                     {/* Backlog Page */}
                     {activePage === 'backlog' && (
                         <div className="page-content story-builder-content">
-                            <StoryList onShowIdea={handleShowIdea} />
+                            <StoryList onShowIdea={handleShowIdea} highlightStoryId={highlightStoryId} />
                         </div>
                     )}
 
@@ -177,8 +200,23 @@ function Project() {
                             <p>Coming soon...</p>
                         </div>
                     )}
+
+                    {/* Notification Settings Page */}
+                    {activePage === 'notification-settings' && (
+                        <div className="page-content">
+                            <NotificationSettings />
+                        </div>
+                    )}
                 </div>
             </main>
+
+            {/* Notification Panel */}
+            <NotificationPanel 
+                projectId={projId} 
+                isOpen={notificationPanelOpen} 
+                onClose={() => setNotificationPanelOpen(false)}
+                onOpenStory={openStoryFromNotification}
+            />
         </div>
     );
 }
