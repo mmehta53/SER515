@@ -279,3 +279,17 @@
   font-style: italic;
   font-size: 0.9rem;
 }
+
+/* Highlighted story (when navigated from notification) */
+.story-card.highlighted {
+  border-color: #f6c846;
+  box-shadow: 0 8px 24px rgba(246, 200, 70, 0.18);
+  position: relative;
+  animation: highlightPulse 1s ease-in-out 0s 2;
+}
+
+@keyframes highlightPulse {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}

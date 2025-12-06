@@ -38,16 +38,36 @@ const StoryList = ({ onShowIdea, highlightStoryId }) => {
     }
   }, []);
 
-  // If a story is requested to be highlighted (e.g. from a notification), set the searchTerm
+  // If a story is requested to be highlighted (e.g. from a notification), scroll to it and apply a visual highlight
+  const [highlightedId, setHighlightedId] = useState(null);
   useEffect(() => {
-    if (highlightStoryId) {
-      // set search term to story id so it is visible
-      setSearchTerm(highlightStoryId);
-      // clear the highlight after a short delay
-      const t = setTimeout(() => setSearchTerm(''), 8000);
-      return () => clearTimeout(t);
+    if (!highlightStoryId) return;
+
+    // Wait until stories are loaded and mounted
+    const tryHighlight = () => {
+      const el = document.querySelector(`[data-storyid="${highlightStoryId}"]`);
+      if (el) {
+        // scroll into view and add highlight state
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedId(highlightStoryId);
+        // remove highlight after 10s
+        const t = setTimeout(() => setHighlightedId(null), 10000);
+        return () => clearTimeout(t);
+      }
+      return null;
+    };
+
+    // If stories are still loading, wait a bit and retry
+    if (loading) {
+      const retry = setTimeout(() => tryHighlight(), 200);
+      return () => clearTimeout(retry);
     }
-  }, [highlightStoryId]);
+
+    const cleanup = tryHighlight();
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+    };
+  }, [highlightStoryId, loading, stories]);
 
   const loadStories = async (projId) => {
     if (!projId) {
@@ -316,7 +336,7 @@ const StoryList = ({ onShowIdea, highlightStoryId }) => {
                     onDragStart={(e) => onDragStart(e, story)}
                     onDragEnd={onDragEnd}
                     isDragging={draggedStoryId === (story.storyId || story.id)}
-                    isHighlighted={highlightStoryId && (story.storyId === highlightStoryId)}
+                    isHighlighted={highlightedId && (story.storyId === highlightedId)}
                   />
                 ))}
               </div>
