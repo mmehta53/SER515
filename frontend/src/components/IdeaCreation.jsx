@@ -200,7 +200,7 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     setError("");
     try {
       if ((idea.currentUserVote || null) === voteType) {
-        setError(`You already ${voteType}d`);
+        // User already voted for this, silently return without error
         return;
       }
       const updated = await voteOnIdea(idea.ideaId || idea._localId || idea.id || idea._id, voteType);
@@ -221,6 +221,12 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
       } catch(e){}
       setIdeas(prev => prev.map(i => (i._localId === normalized._localId ? normalized : i)));
     } catch (err) {
+      // Check if the error is "already voted" - if so, silently treat it as success
+      const errorMsg = err?.response?.data?.msg || "";
+      if (errorMsg.includes("already") && (errorMsg.includes("upvoted") || errorMsg.includes("downvoted"))) {
+        // User has already voted, just silently return
+        return;
+      }
       console.error(err);
       setError("Failed to submit vote");
     }
@@ -275,9 +281,16 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
     })();
   };
 
-  const openCommentBox = (ideaId) => {
-    setCommentIdeaId(ideaId);
-    setCommentText("");
+  const toggleCommentBox = (ideaId) => {
+    if (commentIdeaId === ideaId) {
+      // Close the comment box if it's already open for this idea
+      setCommentIdeaId(null);
+      setCommentText("");
+    } else {
+      // Open the comment box for this idea
+      setCommentIdeaId(ideaId);
+      setCommentText("");
+    }
   };
 
   const handleCommentChange = (e) => setCommentText(e.target.value);
@@ -403,7 +416,7 @@ const IdeaCreation = ({ project, onMoveToStoryBuilder, highlightIdeaId, onHighli
                           <div className="actions-inline">
                             <button className={`upvote ${idea.currentUserVote==='upvote'?'disabled':''}`} onClick={() => handleVoteClick(idea, 'upvote')} disabled={idea.currentUserVote==='upvote'}>▲ {idea.upvotes || 0}</button>
                             <button className={`downvote ${idea.currentUserVote==='downvote'?'disabled':''}`} onClick={() => handleVoteClick(idea, 'downvote')} disabled={idea.currentUserVote==='downvote'}>▼ {idea.downvotes || 0}</button>
-                            <button className="comment-btn" onClick={() => openCommentBox(id)}>💬 Comment</button>
+                            <button className="comment-btn" onClick={() => toggleCommentBox(id)}>💬 Comment</button>
                             {isCreator && <button className="comment-btn" onClick={() => startEditing(idea)}>✏️ Edit</button>}
                             {col === 'reviewed' && (
                               <button className="move-to-story-btn" onClick={() => onMoveToStoryBuilder(idea)}>🚀 Move to Story Builder</button>
