@@ -21,7 +21,7 @@
 .sr-needs-box { border-color: #ffd6d6; background: #fff5f5; }
 
 .sr-readiness { position: relative; width: 160px; height: 12px; background: #eef2f8; border-radius: 10px; margin-top: 6px; }
-.sr-readiness-bar { position: absolute; left: 0; top: 0; bottom: 0; background: #007bff; border-radius: 10px; }
+.sr-readiness-bar { position: absolute; left: 0; top: 0; bottom: 0; background: #4f46e5; border-radius: 10px; }
 
 .sr-filter { display:flex; align-items:center; gap:8px; }
 .sr-filter label { font-size: 13px; color:#555; }

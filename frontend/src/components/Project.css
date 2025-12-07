@@ -111,7 +111,7 @@
     transform: translateY(-50%);
     width: 3px;
     height: 0;
-    background: #007bff;
+    background: #4f46e5;
     transition: height 0.3s ease;
     border-radius: 0 3px 3px 0;
 }
@@ -128,7 +128,7 @@
 
 .nav-item.active {
     background: #e7f3ff;
-    color: #007bff;
+    color: #4f46e5;
     font-weight: 600;
 }
 
