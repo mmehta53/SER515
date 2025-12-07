@@ -208,6 +208,25 @@ def add_comment_to_story(story_id):
 
         # Retrieve updated story
         updated_story = collection.find_one({'storyId': story_id})
+
+        # Broadcast a comment notification to project members (excluding the commenter)
+        try:
+            project_id = updated_story.get('projectId')
+            broadcast_notification_to_project(
+                project_id=project_id,
+                event_type='comment',
+                title='New comment on story',
+                message=f"{user_name} commented on '{updated_story.get('goal', 'Story')}'",
+                triggered_by_id=current_user_id,
+                triggered_by_name=user_name,
+                related_story_id=story_id,
+                exclude_user_id=current_user_id,
+                deduplicate=False,
+            )
+        except Exception:
+            # Notification failures should not break the comment API
+            pass
+
         convert_objectid_to_str(updated_story)
         if 'created_at' in updated_story and isinstance(updated_story['created_at'], datetime):
             updated_story['created_at'] = updated_story['created_at'].isoformat()
@@ -323,6 +342,24 @@ def update_story(story_id):
             )
         else:
             print(f"[NOTIFICATION DEBUG] Skipped sprint_ready: new_status={new_status}, old_status={old_status}")
+
+            # Notify when status changes to 'draft' or 'groomed' (separate notifications)
+            if new_status in ['draft', 'groomed'] and old_status != new_status:
+                try:
+                    broadcast_notification_to_project(
+                        project_id=project_id,
+                        event_type='status_change',
+                        title='Story status changed',
+                        message=f"{user_name} changed status to '{new_status}' for '{updated_story.get('goal', 'Story')}'",
+                        triggered_by_id=current_user_id,
+                        triggered_by_name=user_name,
+                        related_story_id=story_id,
+                        exclude_user_id=current_user_id,
+                        deduplicate=False,
+                    )
+                except Exception:
+                    # Don't fail the update if broadcasting fails
+                    pass
         
         # Notify on essential field changes (goal, acceptance_criteria, story_points, business_value)
         essential_fields = ['goal', 'acceptance_criteria', 'story_points', 'business_value']
