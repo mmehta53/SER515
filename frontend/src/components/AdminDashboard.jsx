@@ -27,7 +27,6 @@ export default function AdminDashboard() {
   const [showMessageCard, setShowMessageCard] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  // NEW — MVP STYLE CONFIRMATION MODAL STATE
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     message: "",
@@ -36,10 +35,8 @@ export default function AdminDashboard() {
 
   const navigate = useNavigate();
 
-  // Helper to make sure every org has a boolean isActive flag
   const normalizeOrg = (org) => ({
     ...org,
-    // If backend doesn't send isActive, default to true
     isActive: org.isActive !== false,
   });
 
@@ -71,46 +68,31 @@ export default function AdminDashboard() {
   const fetchOrganizations = async () => {
     try {
       const response = await api.get("/admin/organizations");
-      if (response.data && response.data.organizations) {
-        setOrganizations(
-          response.data.organizations.map((org) => normalizeOrg(org))
-        );
+      if (response.data?.organizations) {
+        setOrganizations(response.data.organizations.map(normalizeOrg));
       }
     } catch (error) {
       console.error("Error fetching organizations:", error);
     }
   };
 
-  // CREATE ORGANIZATION
   const handleAddOrganization = async () => {
     try {
-      const response = await api.post("/admin/organizations", {
-        name: newOrg.name,
-        description: newOrg.description,
-      });
-
-      const createdOrg = normalizeOrg(response.data.organization);
-      setOrganizations((prev) => [...prev, createdOrg]);
-
+      const response = await api.post("/admin/organizations", newOrg);
+      setOrganizations((prev) => [...prev, normalizeOrg(response.data.organization)]);
       setShowAddOrgPopup(false);
       setNewOrg({ name: "", description: "" });
-
       showMessage("Organization added successfully!");
     } catch (error) {
       showMessage(error.response?.data?.error || "Error adding organization");
     }
   };
 
-  // UPDATE ORGANIZATION
   const handleEditOrganization = async () => {
     try {
-      const response = await api.put(`/admin/organizations/${editOrg.id}`, {
-        name: editOrg.name,
-        description: editOrg.description,
-      });
+      const response = await api.put(`/admin/organizations/${editOrg.id}`, editOrg);
 
       const updatedOrg = normalizeOrg(response.data.organization);
-
       setOrganizations((prev) =>
         prev.map((org) => (org.id === updatedOrg.id ? updatedOrg : org))
       );
@@ -118,71 +100,52 @@ export default function AdminDashboard() {
       setShowEditOrgPopup(false);
       showMessage("Organization updated successfully!");
     } catch (error) {
-      showMessage(error.response?.data?.error || "Error updating organization");
+      showMessage("Error updating organization");
     }
   };
 
-  // DEACTIVATE ORG — USE MVP STYLE CONFIRMATION MODAL
   const handleDeactivateOrganization = (orgId) => {
-    openConfirmModal(
-      "Are you sure you want to deactivate this organization?",
-      () => confirmDeactivateOrg(orgId)
+    openConfirmModal("Are you sure you want to deactivate this organization?", () =>
+      confirmDeactivateOrg(orgId)
     );
   };
 
   const confirmDeactivateOrg = async (orgId) => {
     try {
       await api.put(`/admin/organizations/${orgId}/deactivate`);
-
-      // Only the clicked org becomes inactive
       setOrganizations((prev) =>
-        prev.map((org) =>
-          org.id === orgId ? { ...org, isActive: false } : org
-        )
+        prev.map((org) => (org.id === orgId ? { ...org, isActive: false } : org))
       );
 
-      // If that org is currently selected, close the user panel
-      if (selectedOrg?.id === orgId) {
-        setSelectedOrg(null);
-      }
+      if (selectedOrg?.id === orgId) setSelectedOrg(null);
 
       showMessage("Organization deactivated successfully!");
     } catch (error) {
-      showMessage(
-        error.response?.data?.error || "Error deactivating organization"
-      );
+      showMessage("Error deactivating organization");
     }
-
     closeConfirmModal();
   };
 
-  // FETCH USERS
   const fetchUsers = async (orgId) => {
     try {
       const response = await api.get(`/admin/organizations/${orgId}/users`);
-      const users = response.data?.users || [];
       const org = organizations.find((o) => o.id === orgId);
-
       setSelectedOrg({
         id: orgId,
-        name: org?.name || "Organization",
-        users,
-        isActive: org ? org.isActive !== false : true,
+        name: org?.name,
+        users: response.data?.users || [],
+        isActive: org?.isActive !== false,
       });
-
       setShowAddUserForm(false);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
 
-  // ADD USER
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...newUser, orgId: selectedOrg.id };
-      await api.post("/auth/register-user", payload);
-
+      await api.post("/auth/register-user", { ...newUser, orgId: selectedOrg.id });
       showMessage("User added successfully!");
       fetchUsers(selectedOrg.id);
 
@@ -199,7 +162,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // DEACTIVATE USER — USE MVP STYLE CONFIRMATION POPUP
   const deactivateUser = (userId) => {
     openConfirmModal("Are you sure you want to deactivate this user?", () =>
       confirmDeactivateUser(userId)
@@ -217,19 +179,10 @@ export default function AdminDashboard() {
     closeConfirmModal();
   };
 
-  // UPDATE USER
   const handleEditUser = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        firstName: editingUser.firstName,
-        lastName: editingUser.lastName,
-        email: editingUser.email,
-        role: editingUser.role,
-      };
-
-      await api.put(`/admin/users/${editingUser.userId}`, payload);
-
+      await api.put(`/admin/users/${editingUser.userId}`, editingUser);
       showMessage("User updated successfully!");
       setEditingUser(null);
       fetchUsers(selectedOrg.id);
@@ -238,7 +191,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // MESSAGE SYSTEM
   const showMessage = (msg) => {
     setMessage(msg);
     setShowMessageCard(true);
@@ -251,7 +203,7 @@ export default function AdminDashboard() {
   };
 
   const popupActive =
-    confirmModal.open || showAddOrgPopup || showEditOrgPopup || editingUser;
+    confirmModal.open || showAddOrgPopup || showEditOrgPopup || editingUser || showAddUserForm;
 
   return (
     <div className="admin-dashboard">
@@ -263,36 +215,9 @@ export default function AdminDashboard() {
       </header>
 
       {showMessageCard && <div className="message-card">{message}</div>}
-
-      {/* Dim background when popup active */}
       {popupActive && <div className="modal-overlay"></div>}
 
-      {/* ===================== MVP STYLE CONFIRM MODAL ===================== */}
-      {confirmModal.open && (
-        <div className="modal-content">
-          <h2>Confirm Action</h2>
-          <div className="modal-body">
-            <p>{confirmModal.message}</p>
-          </div>
-
-          <div className="modal-actions">
-            <button className="btn-secondary" onClick={closeConfirmModal}>
-              Cancel
-            </button>
-
-            <button
-              className="btn-blue"
-              onClick={() => {
-                confirmModal.onConfirm();
-              }}
-            >
-              Confirm
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ------- ORGANIZATIONS SECTION ------- */}
+      {/* ORGANIZATIONS SECTION */}
       <section className="organizations-section">
         <div className="org-header">
           <h2>Organizations</h2>
@@ -302,20 +227,19 @@ export default function AdminDashboard() {
         </div>
 
         <div className="org-list">
-          {organizations.length > 0 ? (
+          {organizations.length ? (
             organizations.map((org) => (
               <div key={org.id} className="org-card">
                 <div
                   className="org-info"
                   onClick={() => fetchUsers(org.id)}
-                  style={{ opacity: org.isActive ? 1 : 0.6 }}
+                  style={{ opacity: org.isActive ? 1 : 0.5 }}
                 >
                   <strong>{org.name}</strong>
                   <p>{org.description}</p>
                 </div>
 
                 <div className="org-actions">
-                  {/* Hide edit button if org is inactive */}
                   {org.isActive && (
                     <button
                       className="icon-btn edit-btn"
@@ -328,7 +252,6 @@ export default function AdminDashboard() {
                     </button>
                   )}
 
-                  {/* Deactivate / Deactivated button per org */}
                   <button
                     className="deactivate-btn"
                     disabled={!org.isActive}
@@ -340,104 +263,223 @@ export default function AdminDashboard() {
               </div>
             ))
           ) : (
-            <p>No organizations available.</p>
+            <p>No organizations found.</p>
           )}
         </div>
       </section>
 
-      {/* ------- ADD ORG POPUP ------- */}
-      {showAddOrgPopup && (
-        <div className="edit-popup-inner">
-          <h3>Add Organization</h3>
-
-          <div className="form-group">
-            <label>Name</label>
-            <input
-              type="text"
-              value={newOrg.name}
-              onChange={(e) => setNewOrg({ ...newOrg, name: e.target.value })}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <input
-              type="text"
-              value={newOrg.description}
-              onChange={(e) =>
-                setNewOrg({ ...newOrg, description: e.target.value })
-              }
-            />
-          </div>
-
-          <button className="add-btn" onClick={handleAddOrganization}>
-            Add
-          </button>
-          <button className="cancel-btn" onClick={() => setShowAddOrgPopup(false)}>
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {/* ------- EDIT ORG POPUP ------- */}
-      {showEditOrgPopup && (
-        <div className="edit-popup-inner">
-          <h3>Edit Organization</h3>
-
-          <div className="form-group">
-            <label>Name</label>
-            <input
-              type="text"
-              value={editOrg.name}
-              onChange={(e) =>
-                setEditOrg({ ...editOrg, name: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <input
-              type="text"
-              value={editOrg.description}
-              onChange={(e) =>
-                setEditOrg({ ...editOrg, description: e.target.value })
-              }
-            />
-          </div>
-
-          <button className="add-btn" onClick={handleEditOrganization}>
-            Save Changes
-          </button>
-          <button className="cancel-btn" onClick={() => setShowEditOrgPopup(false)}>
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {/* ------- USERS SECTION ------- */}
+      {/* USERS SECTION */}
       {selectedOrg && (
         <section className="user-section">
           <div className="user-section-header">
             <h2>{selectedOrg.name} - Users</h2>
 
-            {/* Hide Add User button if organization is inactive */}
             {selectedOrg.isActive && (
               <button
                 className="new-user-btn"
-                onClick={() => setShowAddUserForm(!showAddUserForm)}
+                onClick={() => setShowAddUserForm(true)}
               >
                 + Add New User
               </button>
             )}
           </div>
 
-          {/* Add User Form */}
+          {selectedOrg.users?.length ? (
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {selectedOrg.users.map((u) => (
+                  <tr key={u.userId}>
+                    <td>{u.email}</td>
+                    <td>{u.firstName} {u.lastName}</td>
+                    <td>{u.role}</td>
+                    <td>{u.isActive ? "Active" : "Inactive"}</td>
+                    <td>
+                      {u.isActive && (
+                        <button className="edit-btn" onClick={() => setEditingUser(u)}>
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="deactivate-btn"
+                        disabled={!u.isActive}
+                        onClick={() => deactivateUser(u.userId)}
+                      >
+                        {u.isActive ? "Deactivate" : "Deactivated"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No users found.</p>
+          )}
+        </section>
+      )}
+
+      {popupActive && (
+        <div className="popup-container">
+
+          {/* CONFIRM MODAL */}
+          {confirmModal.open && (
+            <div className="popup-box">
+              <h2>Confirm Action</h2>
+              <p>{confirmModal.message}</p>
+
+              <div className="modal-actions">
+                <button className="btn-secondary" onClick={closeConfirmModal}>
+                  Cancel
+                </button>
+                <button className="btn-blue" onClick={confirmModal.onConfirm}>
+                  Confirm
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ADD ORG */}
+          {showAddOrgPopup && (
+            <div className="popup-box">
+              <h3>Add Organization</h3>
+              <div className="form-group">
+                <label>Name</label>
+                <input
+                  type="text"
+                  value={newOrg.name}
+                  onChange={(e) => setNewOrg({ ...newOrg, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description</label>
+                <input
+                  type="text"
+                  value={newOrg.description}
+                  onChange={(e) => setNewOrg({ ...newOrg, description: e.target.value })}
+                />
+              </div>
+
+              <button className="add-btn" onClick={handleAddOrganization}>Add</button>
+              <button className="cancel-btn" onClick={() => setShowAddOrgPopup(false)}>
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* EDIT ORG */}
+          {showEditOrgPopup && (
+            <div className="popup-box">
+              <h3>Edit Organization</h3>
+              <div className="form-group">
+                <label>Name</label>
+                <input
+                  type="text"
+                  value={editOrg.name}
+                  onChange={(e) => setEditOrg({ ...editOrg, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description</label>
+                <input
+                  type="text"
+                  value={editOrg.description}
+                  onChange={(e) => setEditOrg({ ...editOrg, description: e.target.value })}
+                />
+              </div>
+
+              <button className="add-btn" onClick={handleEditOrganization}>Save</button>
+              <button className="cancel-btn" onClick={() => setShowEditOrgPopup(false)}>
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* EDIT USER */}
+          {editingUser && (
+            <div className="popup-box">
+              <h3>Edit User</h3>
+              <form onSubmit={handleEditUser}>
+
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={editingUser.email}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, email: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>First Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.firstName}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, firstName: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.lastName}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, lastName: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Role</label>
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, role: e.target.value })
+                    }
+                  >
+                    <option value="pig">Pig</option>
+                    <option value="chicken">Chicken</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                <button type="submit" className="add-btn">Save</button>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setEditingUser(null)}
+                >
+                  Cancel
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* ADD USER */}
           {showAddUserForm && (
-            <div className="edit-popup-inner">
+            <div className="popup-box">
               <h3>Add New User</h3>
 
               <form onSubmit={handleAddUser}>
+
                 <div className="form-group">
                   <label>Email</label>
                   <input
@@ -500,9 +542,7 @@ export default function AdminDashboard() {
                   </select>
                 </div>
 
-                <button type="submit" className="add-btn">
-                  Add User
-                </button>
+                <button type="submit" className="add-btn">Add User</button>
                 <button
                   type="button"
                   className="cancel-btn"
@@ -510,134 +550,14 @@ export default function AdminDashboard() {
                 >
                   Cancel
                 </button>
+
               </form>
             </div>
           )}
 
-          {/* USERS TABLE */}
-          {selectedOrg.users && selectedOrg.users.length > 0 ? (
-            <table className="user-table">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {selectedOrg.users.map((u) => (
-                  <tr key={u.userId}>
-                    <td>{u.email}</td>
-                    <td>
-                      {u.firstName} {u.lastName}
-                    </td>
-                    <td>{u.role}</td>
-                    <td>{u.isActive ? "Active" : "Inactive"}</td>
-                    <td>
-                      {u.isActive && (
-                        <button
-                          className="edit-btn"
-                          onClick={() => setEditingUser(u)}
-                        >
-                          Edit
-                        </button>
-                      )}
-                      <button
-                        className="deactivate-btn"
-                        disabled={!u.isActive}
-                        onClick={() => deactivateUser(u.userId)}
-                      >
-                        {u.isActive ? "Deactivate" : "Deactivated"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No users found for this organization.</p>
-          )}
-        </section>
-      )}
-
-      {/* ================= EDIT USER POPUP ================= */}
-      {editingUser && (
-        <div className="edit-popup-inner">
-          <h3>Edit User</h3>
-
-          <form onSubmit={handleEditUser}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                value={editingUser.email}
-                onChange={(e) =>
-                  setEditingUser({ ...editingUser, email: e.target.value })
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>First Name</label>
-              <input
-                type="text"
-                value={editingUser.firstName}
-                onChange={(e) =>
-                  setEditingUser({
-                    ...editingUser,
-                    firstName: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Last Name</label>
-              <input
-                type="text"
-                value={editingUser.lastName}
-                onChange={(e) =>
-                  setEditingUser({
-                    ...editingUser,
-                    lastName: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Role</label>
-              <select
-                value={editingUser.role}
-                onChange={(e) =>
-                  setEditingUser({ ...editingUser, role: e.target.value })
-                }
-              >
-                <option value="pig">Pig</option>
-                <option value="chicken">Chicken</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <button type="submit" className="add-btn">
-              Save Changes
-            </button>
-            <button
-              type="button"
-              className="cancel-btn"
-              onClick={() => setEditingUser(null)}
-            >
-              Cancel
-            </button>
-          </form>
         </div>
       )}
+
     </div>
   );
 }

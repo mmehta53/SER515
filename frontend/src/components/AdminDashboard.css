@@ -1,17 +1,9 @@
-/* ====================================================================== */
-/*                          GENERAL LAYOUT                                */
-/* ====================================================================== */
-
 .admin-dashboard {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f5f7fa;
   min-height: 100vh;
   padding: 20px;
 }
-
-/* ====================================================================== */
-/*                                 HEADER                                 */
-/* ====================================================================== */
 
 .admin-header {
   display: flex;
@@ -30,7 +22,7 @@
 }
 
 .logout-btn {
-  background-color: #ef4444;
+  background-color: #da2727;
   color: white;
   border: none;
   padding: 8px 14px;
@@ -42,10 +34,6 @@
 .logout-btn:hover {
   background-color: #dc2626;
 }
-
-/* ====================================================================== */
-/*                         ORGANIZATION SECTION                           */
-/* ====================================================================== */
 
 .organizations-section {
   background: #fff;
@@ -69,7 +57,7 @@
 }
 
 .add-org-btn {
-  background-color: #2563eb;
+  background-color: #4f46e5;
   color: white;
   padding: 8px 14px;
   border: none;
@@ -79,7 +67,7 @@
 }
 
 .add-org-btn:hover {
-  background-color: #1e40af;
+  background-color: #7a4be9;
 }
 
 .org-list {
@@ -101,8 +89,8 @@
 }
 
 .org-card:hover {
-  background-color: #e0f2fe;
-  border-color: #38bdf8;
+  background-color: #f6f0ff;
+  border-color: #4f46e5;
 }
 
 .org-info {
@@ -115,9 +103,8 @@
   align-items: center;
 }
 
-/* Edit + Delete/Deactivate buttons */
 .edit-btn {
-  background-color: #3b82f6;
+  background-color: #4f46e5;
   color: white;
   padding: 6px 10px;
   border-radius: 6px;
@@ -126,20 +113,21 @@
 }
 
 .edit-btn:hover {
-  background-color: #2563eb;
+  background-color: #4f46e5;
 }
 
 .deactivate-btn {
-  background-color: #ef4444;
+  background-color: #da2727;
   color: white;
   padding: 6px 10px;
+  margin-left: 2%;
   border-radius: 6px;
   border: none;
   cursor: pointer;
 }
 
 .deactivate-btn:hover {
-  background-color: #dc2626;
+  background-color: #de1010;
 }
 
 .deactivate-btn:disabled {
@@ -147,10 +135,6 @@
   cursor: not-allowed;
   opacity: 0.7;
 }
-
-/* ====================================================================== */
-/*                              USER SECTION                              */
-/* ====================================================================== */
 
 .user-section {
   background: #fff;
@@ -167,7 +151,7 @@
 }
 
 .new-user-btn {
-  background-color: #2563eb;
+  background-color: #4f46e5;
   color: white;
   padding: 8px 14px;
   border-radius: 6px;
@@ -177,7 +161,7 @@
 }
 
 .new-user-btn:hover {
-  background-color: #1e40af;
+  background-color: #7a4be9;
 }
 
 /* User Table */
@@ -200,9 +184,6 @@
   font-weight: 600;
 }
 
-/* ====================================================================== */
-/*                           ADD USER — FULL WIDTH                        */
-/* ====================================================================== */
 
 .user-section .edit-popup-inner {
   width: 100%;
@@ -217,7 +198,7 @@
   transform: none;
 }
 
-/* Form styling (shared with Org popups) */
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -240,7 +221,7 @@
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: #2563eb;
+  border-color: #4f46e5;
   outline: none;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
@@ -256,12 +237,12 @@
 }
 
 .add-btn {
-  background-color: #2563eb;
+  background-color: #4f46e5;
   color: white;
 }
 
 .add-btn:hover {
-  background-color: #1e40af;
+  background-color: #7a4be9;
 }
 
 .cancel-btn {
@@ -274,10 +255,6 @@
   background-color: #4b5563;
 }
 
-/* ====================================================================== */
-/*                         ORG POPUPS (Add/Edit)                          */
-/* ====================================================================== */
-
 .edit-popup {
   position: fixed;
   top: 0;
@@ -288,7 +265,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 3001; /* Was 999 */
 }
 
 .edit-popup-inner {
@@ -297,13 +274,8 @@
   width: 400px;
   border-radius: 12px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  z-index: 1000;
+  z-index: 3002; /* Was 1000 */
 }
-
-/* ====================================================================== */
-/*                        MESSAGE CARD ANIMATION                          */
-/* ====================================================================== */
-
 .message-card {
   background-color: #d1fae5;
   border-left: 5px solid #10b981;
@@ -322,10 +294,6 @@
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* ====================================================================== */
-/*                 DEACTIVATE POPUP — MVP STYLE (NO ANIMATION)           */
-/* ====================================================================== */
 
 .modal-overlay {
   position: fixed;
@@ -349,8 +317,6 @@
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   z-index: 2001;
-
-  /* No bouncing / sliding / animation */
   animation: none;
   transition: none;
 }
@@ -390,7 +356,7 @@
 }
 
 .btn-blue {
-  background-color: #2563eb;
+  background-color: #4f46e5;
   color: white;
   padding: 0.6rem 1.2rem;
   border: none;
@@ -402,10 +368,6 @@
 .btn-blue:hover {
   background-color: #1e40af;
 }
-
-/* ====================================================================== */
-/*                              RESPONSIVE                                */
-/* ====================================================================== */
 
 @media (max-width: 768px) {
   .org-list {
@@ -421,4 +383,29 @@
     font-size: 13px;
     padding: 8px;
   }
+}
+/* Fix popup centering and layering */
+
+.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3003; /* ABOVE overlay */
+  pointer-events: none;
+}
+
+.popup-box {
+  background: #fff;
+  padding: 25px;
+  width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  z-index: 3004;
+  pointer-events: auto;
+  position: relative;
 }
