@@ -83,7 +83,7 @@ function Project() {
         { id: 'backlog', label: 'Backlog', icon: '📋' },
         { id: 'mvp-planning', label: 'MVP Planning', icon: '🎯' },
         { id: 'sprint-readiness', label: 'Sprint Readiness', icon: '⚡' },
-        { id: 'exports', label: 'Exports', icon: '📤' },
+        // { id: 'exports', label: 'Exports', icon: '📤' },
         { id: 'notification-settings', label: 'Notifications', icon: '🔔' }
     ];
 
@@ -216,12 +216,12 @@ function Project() {
                     )}
 
                     {/* Exports Page */}
-                    {activePage === 'exports' && (
+                    {/* {activePage === 'exports' && (
                         <div className="page-content">
                             <h2>Exports</h2>
                             <p>Coming soon...</p>
                         </div>
-                    )}
+                    )} */}
 
                     {/* Notification Settings Page */}
                     {activePage === 'notification-settings' && (
