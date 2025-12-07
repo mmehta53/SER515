@@ -27,7 +27,7 @@ function SprintReadiness() {
               businessValue: s.business_value || s.businessValue || null,
               role: s.role || null,
               goal: s.goal || s.role || null,
-              description: s.description || null,
+              description: s.description || '',
               acceptance: s.acceptance_criteria || s.acceptance_criteria || s.acceptance || false,
               status: (s.status && (s.status === 'sprint-ready' || s.status === 'Sprint Ready')) ? 'Sprint Ready' : (s.status || 'Draft')
             }));
@@ -125,7 +125,7 @@ function SprintReadiness() {
       <div className="sr-top">
         <div className="sr-boxes">
           <div className="sr-box sr-ready-box">
-            <div className="sr-box-title">Sprint Ready</div>
+            <div className="sr-box-title">Complete</div>
             <div className="sr-box-count">{counts.ready}</div>
           </div>
           <div className="sr-box sr-needs-box">
@@ -154,7 +154,7 @@ function SprintReadiness() {
         <label>Filter by status</label>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="All">All stories</option>
-          <option value="Sprint Ready">Sprint Ready</option>
+          <option value="Sprint Ready">Complete</option>
           <option value="Needs Work">Needs Work</option>
         </select>
       </div>
@@ -184,7 +184,7 @@ function SprintReadiness() {
             <div className="col goal-col">{s._assess.hasGoal ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
             <div className="col desc-col">{s._assess.hasDescription ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
             <div className="col accept-col">{s._assess.hasAcceptance ? <span className="check">✔️</span> : <span className="cross">✖️</span>}</div>
-            <div className="col status-col">{s._assess.ready ? <span className="status-ready">Sprint Ready</span> : <span className="status-needs">Needs Work</span>}</div>
+            <div className="col status-col">{s._assess.ready ? <span className="status-ready">Complete</span> : <span className="status-needs">Needs Work</span>}</div>
           </div>
         ))}
       </div>
