@@ -35,7 +35,8 @@ def get_all_organizations():
                 'id': org.id,
                 'name': org.name,
                 'description': org.description,
-                'createdAt': org.createdAt.isoformat() if org.createdAt else None
+                'createdAt': org.createdAt.isoformat() if org.createdAt else None,
+                'isActive': org.isActive
             })
         
         return jsonify({
@@ -46,6 +47,173 @@ def get_all_organizations():
     
     except Exception as e:
         return jsonify({'error': f'An error occurred while fetching organizations: {str(e)}'}), 500
+
+
+@admin_bp.route('/organizations', methods=['POST'])
+@jwt_required()
+def create_organization():
+    """
+    Admin-only route to create a new organization.
+    Requires: Admin role in JWT claims.
+    Body: JSON with name (required) and description (optional)
+    Returns: Created organization details
+    """
+    if not admin_required():
+        return jsonify({'error': 'Admin privileges required'}), 403
+
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data or 'name' not in data:
+            return jsonify({'error': 'Organization name is required'}), 400
+
+        name = data['name']
+        description = data.get('description', '')
+
+        # Check if organization with same name already exists
+        existing_org = Organization.objects(name=name).first()
+        if existing_org:
+            return jsonify({'error': 'Organization with this name already exists'}), 409
+
+        # Create new organization
+        new_org = Organization(
+            name=name,
+            description=description,
+            isActive=True,
+            createdAt=datetime.utcnow()
+        )
+        new_org.save()
+
+        # Log the Admin action
+        admin_id = get_jwt_identity()
+        print(f"AUDIT LOG: Admin User {admin_id} created organization {new_org.id} ({name}) at {datetime.utcnow()}")
+
+        return jsonify({
+            'message': 'Organization created successfully',
+            'organization': {
+                'id': new_org.id,
+                'name': new_org.name,
+                'description': new_org.description,
+                'isActive': new_org.isActive,
+                'createdAt': new_org.createdAt.isoformat() if new_org.createdAt else None
+            }
+        }), 201
+
+    except Exception as e:
+        return jsonify({'error': f'An error occurred while creating organization: {str(e)}'}), 500
+
+
+@admin_bp.route('/organizations/<org_id>', methods=['PUT'])
+@jwt_required()
+def update_organization(org_id):
+    """
+    Admin-only route to update an organization's information.
+    Requires: Admin role in JWT claims.
+    Args: org_id - The ID of the organization to update
+    Body: JSON with fields to update (name, description)
+    Returns: Updated organization information
+    """
+    if not admin_required():
+        return jsonify({'error': 'Admin privileges required'}), 403
+
+    try:
+        # Find the organization to update
+        organization = Organization.objects(id=org_id).first()
+        
+        if not organization:
+            return jsonify({'error': 'Organization not found'}), 404
+
+        data = request.get_json()
+        
+        # Update allowed fields
+        if 'name' in data:
+            # Check if new name is unique
+            existing_org = Organization.objects(name=data['name']).first()
+            if existing_org and existing_org.id != org_id:
+                return jsonify({'error': 'Organization with this name already exists'}), 409
+            organization.name = data['name']
+        
+        if 'description' in data:
+            organization.description = data['description']
+        
+        # Save the updated organization
+        organization.save()
+        
+        # Log the Admin action
+        admin_id = get_jwt_identity()
+        print(f"AUDIT LOG: Admin User {admin_id} updated organization {org_id} ({organization.name}) at {datetime.utcnow()}")
+        
+        return jsonify({
+            'message': 'Organization updated successfully',
+            'organization': {
+                'id': organization.id,
+                'name': organization.name,
+                'description': organization.description,
+                'isActive': organization.isActive,
+                'createdAt': organization.createdAt.isoformat() if organization.createdAt else None
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({'error': f'An error occurred while updating organization: {str(e)}'}), 500
+
+
+@admin_bp.route('/organizations/<org_id>/deactivate', methods=['PUT'])
+@jwt_required()
+def deactivate_organization(org_id):
+    """
+    Admin-only route to deactivate an organization and all its users.
+    Requires: Admin role in JWT claims.
+    Args: org_id - The ID of the organization to deactivate
+    Returns: Updated organization with deactivated status and count of deactivated users
+    """
+    if not admin_required():
+        return jsonify({'error': 'Admin privileges required'}), 403
+
+    try:
+        # Find the organization to deactivate
+        organization = Organization.objects(id=org_id).first()
+        
+        if not organization:
+            return jsonify({'error': 'Organization not found'}), 404
+
+        # Check if already deactivated
+        if not organization.isActive:
+            return jsonify({'error': 'Organization is already deactivated'}), 400
+
+        # Deactivate all users in the organization
+        users = User.objects(orgId=org_id).all()
+        deactivated_count = 0
+        
+        for user in users:
+            if user.isActive:
+                user.isActive = False
+                user.save()
+                deactivated_count += 1
+
+        # Deactivate the organization
+        organization.isActive = False
+        organization.save()
+        
+        # Log the Admin action
+        admin_id = get_jwt_identity()
+        print(f"AUDIT LOG: Admin User {admin_id} deactivated organization {org_id} ({organization.name}) and {deactivated_count} users at {datetime.utcnow()}")
+        
+        return jsonify({
+            'message': 'Organization and its users deactivated successfully',
+            'organization': {
+                'id': organization.id,
+                'name': organization.name,
+                'description': organization.description,
+                'isActive': organization.isActive,
+                'createdAt': organization.createdAt.isoformat() if organization.createdAt else None
+            },
+            'deactivatedUsersCount': deactivated_count
+        }), 200
+    
+    except Exception as e:
+        return jsonify({'error': f'An error occurred while deactivating organization: {str(e)}'}), 500
 
 
 @admin_bp.route('/organizations/<org_id>/users', methods=['GET'])
