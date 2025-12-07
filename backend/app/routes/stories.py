@@ -301,9 +301,15 @@ def update_story(story_id):
         user = db['users'].find_one({'userId': current_user_id})
         user_name = user.get('firstName', 'Unknown') if user else 'Unknown'
         project_id = updated_story.get('projectId')
+
+        # Debug logging
+        old_status = story.get('status', 'draft')
+        new_status = data.get('status')
+        print(f"[NOTIFICATION DEBUG] old_status={old_status}, new_status={new_status}, project_id={project_id}")
         
-        # Check if status changed to sprint-ready
-        if 'status' in data and data['status'] == 'sprint-ready' and story.get('status') != 'sprint-ready':
+        # Check if status changed to sprint-ready (only notify if transitioning TO sprint-ready)
+        if new_status == 'sprint-ready' and old_status != 'sprint-ready':
+            print(f"[NOTIFICATION DEBUG] Triggering sprint_ready notification")
             broadcast_notification_to_project(
                 project_id=project_id,
                 event_type='sprint_ready',
@@ -313,8 +319,10 @@ def update_story(story_id):
                 triggered_by_name=user_name,
                 related_story_id=story_id,
                 exclude_user_id=current_user_id,
-                deduplicate=True,
+                deduplicate=False,
             )
+        else:
+            print(f"[NOTIFICATION DEBUG] Skipped sprint_ready: new_status={new_status}, old_status={old_status}")
         
         # Notify on essential field changes (goal, acceptance_criteria, story_points, business_value)
         essential_fields = ['goal', 'acceptance_criteria', 'story_points', 'business_value']
