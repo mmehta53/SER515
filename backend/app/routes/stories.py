@@ -4,6 +4,7 @@ from mongoengine.connection import get_db
 from datetime import datetime
 from bson import ObjectId
 import uuid
+from app.utils.notifications import broadcast_notification_to_project
 
 
 stories_bp = Blueprint('stories', __name__)
@@ -207,6 +208,25 @@ def add_comment_to_story(story_id):
 
         # Retrieve updated story
         updated_story = collection.find_one({'storyId': story_id})
+
+        # Broadcast a comment notification to project members (excluding the commenter)
+        try:
+            project_id = updated_story.get('projectId')
+            broadcast_notification_to_project(
+                project_id=project_id,
+                event_type='comment',
+                title='New comment on story',
+                message=f"{user_name} commented on '{updated_story.get('goal', 'Story')}'",
+                triggered_by_id=current_user_id,
+                triggered_by_name=user_name,
+                related_story_id=story_id,
+                exclude_user_id=current_user_id,
+                deduplicate=False,
+            )
+        except Exception:
+            # Notification failures should not break the comment API
+            pass
+
         convert_objectid_to_str(updated_story)
         if 'created_at' in updated_story and isinstance(updated_story['created_at'], datetime):
             updated_story['created_at'] = updated_story['created_at'].isoformat()
@@ -293,6 +313,71 @@ def update_story(story_id):
         
         # Retrieve updated story
         updated_story = collection.find_one({'storyId': story_id})
+        
+        # Trigger notifications if status changed to sprint-ready or essential fields changed
+        current_user_id = get_jwt_identity()
+        db = get_db()
+        user = db['users'].find_one({'userId': current_user_id})
+        user_name = user.get('firstName', 'Unknown') if user else 'Unknown'
+        project_id = updated_story.get('projectId')
+
+        # Debug logging
+        old_status = story.get('status', 'draft')
+        new_status = data.get('status')
+        print(f"[NOTIFICATION DEBUG] old_status={old_status}, new_status={new_status}, project_id={project_id}")
+        
+        # Check if status changed to sprint-ready (only notify if transitioning TO sprint-ready)
+        if new_status == 'sprint-ready' and old_status != 'sprint-ready':
+            print(f"[NOTIFICATION DEBUG] Triggering sprint_ready notification")
+            broadcast_notification_to_project(
+                project_id=project_id,
+                event_type='sprint_ready',
+                title=f"Story Ready for Sprint",
+                message=f"{user_name} marked '{updated_story.get('goal', 'Story')}' as sprint-ready",
+                triggered_by_id=current_user_id,
+                triggered_by_name=user_name,
+                related_story_id=story_id,
+                exclude_user_id=current_user_id,
+                deduplicate=False,
+            )
+        else:
+            print(f"[NOTIFICATION DEBUG] Skipped sprint_ready: new_status={new_status}, old_status={old_status}")
+
+            # Notify when status changes to 'draft' or 'groomed' (separate notifications)
+            if new_status in ['draft', 'groomed'] and old_status != new_status:
+                try:
+                    broadcast_notification_to_project(
+                        project_id=project_id,
+                        event_type='status_change',
+                        title='Story status changed',
+                        message=f"{user_name} changed status to '{new_status}' for '{updated_story.get('goal', 'Story')}'",
+                        triggered_by_id=current_user_id,
+                        triggered_by_name=user_name,
+                        related_story_id=story_id,
+                        exclude_user_id=current_user_id,
+                        deduplicate=False,
+                    )
+                except Exception:
+                    # Don't fail the update if broadcasting fails
+                    pass
+        
+        # Notify on essential field changes (goal, acceptance_criteria, story_points, business_value)
+        essential_fields = ['goal', 'acceptance_criteria', 'story_points', 'business_value']
+        changed_essentials = [f for f in essential_fields if f in data and data[f] != story.get(f)]
+        
+        if changed_essentials:
+            field_names = ', '.join(changed_essentials)
+            broadcast_notification_to_project(
+                project_id=project_id,
+                event_type='story_updated',
+                title=f"Story Updated",
+                message=f"{user_name} updated {field_names} in '{updated_story.get('goal', 'Story')}'",
+                triggered_by_id=current_user_id,
+                triggered_by_name=user_name,
+                related_story_id=story_id,
+                exclude_user_id=current_user_id,
+                deduplicate=False,  # allow multiple updates
+            )
         
         convert_objectid_to_str(updated_story)
         # Convert datetime objects to ISO format strings
