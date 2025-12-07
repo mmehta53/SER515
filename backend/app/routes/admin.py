@@ -35,7 +35,8 @@ def get_all_organizations():
                 'id': org.id,
                 'name': org.name,
                 'description': org.description,
-                'createdAt': org.createdAt.isoformat() if org.createdAt else None
+                'createdAt': org.createdAt.isoformat() if org.createdAt else None,
+                'isActive': org.isActive
             })
         
         return jsonify({
