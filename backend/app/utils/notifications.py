@@ -162,7 +162,31 @@ def broadcast_notification_to_project(
             # Skip excluded user (usually the trigger)
             if exclude_user_id and user_id == exclude_user_id:
                 continue
-            
+
+            # Respect per-user preferences (check via notification_preferences collection)
+            try:
+                pref_doc = db.notification_preferences.find_one({'userId': user_id, 'projectId': project_id})
+            except Exception:
+                pref_doc = None
+
+            # Map event type to preference field; default to True when preference missing
+            pref_field_map = {
+                'sprint_ready': 'notifySprintReady',
+                'story_updated': 'notifyStoryUpdated',
+                'status_change': 'notifyStatusChange',
+                'comment': 'notifyComments',
+            }
+            pref_field = pref_field_map.get(event_type)
+
+            if pref_field:
+                pref_enabled = True
+                if pref_doc is not None:
+                    # Preference stored with camelCase keys - check accordingly
+                    pref_enabled = bool(pref_doc.get(pref_field, True))
+                if not pref_enabled:
+                    # User opted out for this event type
+                    continue
+
             # Create notification for this user
             res = create_notification(
                 user_id=user_id,
@@ -176,7 +200,7 @@ def broadcast_notification_to_project(
                 related_mvp_id=related_mvp_id,
                 deduplicate=deduplicate,
             )
-            
+
             if res.get("success") and not res.get("skipped"):
                 notified_count += 1
         
