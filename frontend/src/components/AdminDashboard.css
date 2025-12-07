@@ -325,3 +325,64 @@
   cursor: not-allowed;
   opacity: 0.7;
 }
+/* ============================= */
+/* Organization Section Updates  */
+/* ============================= */
+
+.org-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.add-org-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.add-org-btn:hover {
+  background-color: #1e40af;
+}
+
+.org-card {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  width: 300px;
+}
+
+.org-info {
+  cursor: pointer;
+}
+
+.org-actions {
+  display: flex;
+  flex-direction: row;   /* buttons side-by-side */
+  gap: 2px;
+  align-items: center;
+}
+
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+  padding: 3px 5px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}
+.org-actions .edit-btn,
+.org-actions .delete-btn {
+  padding: 6px 9px;
+  font-size: 14px;
+}
