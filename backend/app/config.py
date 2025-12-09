@@ -17,7 +17,7 @@ class Config:
     JWT_COOKIE_CSRF_PROTECT = False  # Set to True in production
     
     # CORS Settings
-    CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']  # Add your frontend URL
+    CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']  # Add your frontend URL
     CORS_SUPPORTS_CREDENTIALS = True  # Required for cookies
     
     # Email Configuration

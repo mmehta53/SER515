@@ -14,7 +14,7 @@ def create_app():
     app.config.from_object(Config)
     # Enable CORS for API endpoints so frontend at http://localhost:5173 can talk to this backend
     # supports_credentials=True so cookies (JWT cookies) can be set and sent
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS']}}, supports_credentials=True)
     
     # Connect to MongoDB with database name
     # connect(db='SER515', host=app.config['MONGO_URI'])
