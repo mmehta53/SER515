@@ -81,20 +81,82 @@ Follow these steps to set up and run the project locally.
    MONGO_URI=mongodb://localhost:27017/
 
    # JWT Configuration
-   SECRET_KEY=your_super_secret_key_here
-   JWT_ACCESS_TOKEN_EXPIRES=900
+   SECRET_KEY=your_generated_secret_key_here
+   JWT_ACCESS_TOKEN_EXPIRES=259200
    JWT_REFRESH_TOKEN_EXPIRES=604800
 
    # Email Configuration (for email functionality)
    MAIL_SERVER=smtp.gmail.com
    MAIL_PORT=587
    MAIL_USE_TLS=true
-   MAIL_USERNAME=your_email@gmail.com
-   MAIL_PASSWORD=your_app_password
+   MAIL_USERNAME=your_gmail@gmail.com
+   MAIL_PASSWORD=your_app_specific_password
    MAIL_DEFAULT_SENDER=noreply@projectideation.com
    ```
 
-   > **Note:** Replace `your_super_secret_key_here`, `your_email@gmail.com`, and `your_app_password` with your actual values.
+   #### 3a. Generate JWT Secret Key
+
+   You need a strong secret key for JWT token generation. Generate one using Python:
+
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+   This will output a random 64-character hexadecimal string. Copy this value and paste it as your `SECRET_KEY` in the `.env` file.
+
+   **Example output:**
+   ```
+   a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+   ```
+
+   #### 3b. Configure Email (Gmail with App Password)
+
+   To enable email functionality (welcome emails, notifications), follow these steps:
+
+   1. **Enable 2-Factor Authentication on your Google Account:**
+      - Go to [Google Account Security](https://myaccount.google.com/security)
+      - Click **2-Step Verification** and follow the prompts to enable it.
+
+   2. **Generate an App-Specific Password:**
+      - Go to [Google Account App Passwords](https://myaccount.google.com/apppasswords)
+      - Select **Mail** and **Windows Computer** (or your device type)
+      - Google will generate a 16-character app password
+      - Copy this password and paste it as `MAIL_PASSWORD` in your `.env` file
+
+   3. **Set Email Configuration in `.env`:**
+      ```bash
+      MAIL_USERNAME=your_gmail@gmail.com        # Your full Gmail address
+      MAIL_PASSWORD=xxxx xxxx xxxx xxxx         # The 16-character app password (spaces included)
+      MAIL_SERVER=smtp.gmail.com
+      MAIL_PORT=587
+      MAIL_USE_TLS=true
+      MAIL_DEFAULT_SENDER=noreply@projectideation.com
+      ```
+
+   > **Note for Gmail Users:** The app password is different from your regular password. It's specifically generated for third-party applications like this Flask app.
+
+   > **Note for Non-Gmail Users:** If using a different email provider, adjust `MAIL_SERVER` and `MAIL_PORT` accordingly (e.g., Outlook: `smtp-mail.outlook.com:587`, SendGrid: `smtp.sendgrid.net:587`).
+
+   #### Complete .env Example:
+
+   ```bash
+   # MongoDB Configuration
+   MONGO_URI=mongodb://localhost:27017/
+
+   # JWT Configuration
+   SECRET_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+   JWT_SECRET_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+   JWT_ACCESS_TOKEN_EXPIRES=259200
+   JWT_REFRESH_TOKEN_EXPIRES=604800
+
+   # Email Configuration
+   MAIL_SERVER=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USE_TLS=true
+   MAIL_USERNAME=your_gmail@gmail.com
+   MAIL_PASSWORD=xxxx xxxx xxxx xxxx
+   MAIL_DEFAULT_SENDER=noreply@projectideation.com
+   ```
 
 4. Run the Server:
 
