@@ -200,7 +200,15 @@ Open your terminal/command prompt and start the MongoDB server:
 
 **On macOS/Linux:**
 ```bash
+#Run this in your terminal
 mongod
+
+#Or run
+#Start the MongoDB Server Service
+brew services start mongodb-community
+#Connect with the Shell
+mongosh
+
 ```
 
 **On Windows:**
@@ -280,7 +288,8 @@ Created admin user: <user-id> - admin@organization.com
 Password is set to '123456' (stored hashed in DB).
 ```
 
-You can now log in to the application using these credentials.
+You can now log in to the application using these credentials only.
+Now you can create the user "pig" and "chicken" inside the admin dashboard.
 
 ---
 
